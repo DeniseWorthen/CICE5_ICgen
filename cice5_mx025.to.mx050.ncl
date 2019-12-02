@@ -7,7 +7,7 @@ begin
    wgtsfile = "tripole.mx025.Ct.to.mx050.Ct.bilinear.nc"
 
    cdate = "2012010100"
-   icdir = "/scratch1/NCEPDEV/nems/Bin.Li/S2S/FROM_HPSS/"+cdate+"/"
+   icdir = "/scratch1/NCEPDEV/nems/Bin.Li/S2S/FROM_HPSS/"+cdate+"/cpc/"
     g025 = "cice5_model_0.25.res_"+cdate+".nc"
      g05 = "cice5_model_0.50.res_"+cdate+".nc"
 
@@ -29,8 +29,8 @@ begin
 ; set up the output netcdf file
 ;----------------------------------------------------------------------
 
-    ;outfile = dir+g05
-    outfile = g05
+    outfile = dir+g05
+    ;outfile = g05
     system("/bin/rm -f " + outfile)    ; remove if exists
     outcdf  = addfile (outfile, "c")  ; open output file
 
