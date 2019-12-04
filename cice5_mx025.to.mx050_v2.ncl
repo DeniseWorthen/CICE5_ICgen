@@ -13,13 +13,13 @@ saltmax = 3.2d0
  cp_ice = 2106.d0
  cp_ocn = 4218.d0
  Lfresh = 3.34d5
+   puny = 1.0d-3
 
 ;----------------------------------------------------------------------
 ;
 ;----------------------------------------------------------------------
 
         dir = "/scratch2/NCEPDEV/climate/Denise.Worthen/TTout/"
-   wgtsfile = "tripole.mx025.Ct.to.mx050.Ct.bilinear.nc"
 
    cdate = "2012010100"
    icdir = "/scratch1/NCEPDEV/nems/Bin.Li/S2S/FROM_HPSS/"+cdate+"/cpc/"
@@ -58,7 +58,8 @@ saltmax = 3.2d0
    ; masked with this interpolation mask
 
    ; specify the tripole-to-tripole weights file
-    wgtsfile = "tripole.mx025.Ct.to.mx050.Ct.bilinear.nc"
+   ; wgtsfile = "tripole.mx025.Ct.to.mx050.Ct.bilinear.nc"
+    wgtsfile = "tripole.mx025.Ct.to.mx050.Ct.neareststod.nc"
       rgmask = ESMF_regrid_with_weights(mask025, dir+wgtsfile,False)
     rgmask3d = conform_dims((/ncat,nj,ni/),rgmask,(/1,2/)) 
 
@@ -162,21 +163,68 @@ saltmax = 3.2d0
 
 ;if(1.eq.0)then
 ;----------------------------------------------------------------------
+; regrid each variable and place in output cdf
+; this ignores any difference between angle of the two grids; the ice
+; velocities could be inaccurate
+;----------------------------------------------------------------------
+
+  do nv = 0,nvars-1
+      varname = vnames(nv)
+        sname = str_get_cols(varname,0,3)
+   ; skip the iceumask variable and layer variables
+   if(varname .ne. "iceumask" .and.  \
+        sname .ne.     "qice" .and.  \
+        sname .ne.     "qsno" .and.  \
+        sname .ne.     "Tsfc" .and.  \
+        sname .ne.     "sice")then
+     print("regridding variable "+varname)
+          var = f025->$varname$
+   rgtt = ESMF_regrid_with_weights(var,dir+wgtsfile,False)
+   ndims = dimsizes(dimsizes(rgtt))
+   ;print(varname +"  "+ndims)
+
+   ; mask out land contaminated areas. this skips Tin variable
+   if(ndims .eq. 3)then
+     ; rgtt = where(ismissing(rgmask3d), rgtt@_FillValue, rgtt)
+     ; fill missing areas
+     ; poisson_grid_fill( rgtt, is_cyclic, guess, nscan, eps, relc, opt)
+     ; apply known land mask
+     rgtt = where(land3d .eq. 0.0, 0.0, rgtt)
+   end if
+
+   if(ndims .eq. 2)then
+     ; rgtt = where(ismissing(rgmask),   rgtt@_FillValue, rgtt) 
+     ; fill missing areas
+     ; poisson_grid_fill( rgtt, is_cyclic, guess, nscan, eps, relc, opt)
+     ; apply known land mask
+     rgtt = where(land .eq. 0.0, 0.0, rgtt)
+   end if
+
+   outcdf->$varname$  = (/rgtt/)
+
+     delete(var)
+     delete(rgtt)
+   end if
+  end do
+
+  ;retrieve the regridded ice concentration for masking
+  ;   aicen = outcdf->aicen
+  ;    aice = dim_sum_n(aicen,0)
+  ;    aice = where(aice .lt. puny, 0.0d0, aice)
+
+;if(1.eq.0)then
+;----------------------------------------------------------------------
 ; retrieve the layer variables
 ;----------------------------------------------------------------------
 
   ; regrid the surface temperature field
   rgtt = ESMF_regrid_with_weights(f025->Tsfcn,dir+wgtsfile,False)
-  rgtt = where(ismissing(rgmask3d), rgtt@_FillValue, rgtt)
+  ;rgtt = where(ismissing(rgmask3d), rgtt@_FillValue, rgtt)
   ; fill missing areas
-  poisson_grid_fill( rgtt, is_cyclic, guess, nscan, eps, relc, opt)
+  ;poisson_grid_fill( rgtt, is_cyclic, guess, nscan, eps, relc, opt)
   do k=0,nslyr-1
    qsno(k,:,:,:) = -rhos*(Lfresh - cp_ice*rgtt(:,:,:))
   end do
-  ; write the Tsfcn and qsno 
-  outcdf->Tsfcn   = (/rgtt/)
-  outcdf->qsno001 = (/qsno(0,:,:,:)/)
-  delete(rgtt)
 
   do nv = 0,nvars-1
    varname = vnames(nv)
@@ -196,7 +244,17 @@ saltmax = 3.2d0
    ; end do
    ;end if
   end do
-  
+ 
+  do k = 0,ncat-1
+   do l = 0,nslyr-1
+   ; qsno(l,k,:,:) = where(aice(:,:) .eq. 0.0d0, 0.0d0, qsno(l,k,:,:))
+   end do
+   do l = 0,nilyr-1
+   ; qice(l,k,:,:) = where(aice(:,:) .eq. 0.0d0, 0.0d0, qice(l,k,:,:))
+   ; sice(l,k,:,:) = where(aice(:,:) .eq. 0.0d0, 0.0d0, sice(l,k,:,:))
+   end do
+  end do
+
   ; write the qice and sice
   outcdf->qice001 = (/qice(0,:,:,:)/)
   outcdf->qice002 = (/qice(1,:,:,:)/)
@@ -212,52 +270,11 @@ saltmax = 3.2d0
   outcdf->sice005 = (/sice(4,:,:,:)/)
   outcdf->sice006 = (/sice(5,:,:,:)/)
   outcdf->sice007 = (/sice(6,:,:,:)/)
+  ; write the Tsfcn and qsno 
+  outcdf->Tsfcn   = (/rgtt/)
+  outcdf->qsno001 = (/qsno(0,:,:,:)/)
+  delete(rgtt)
 ;end if
-;if(1.eq.0)then
-;----------------------------------------------------------------------
-; regrid each variable and place in output cdf
-; this ignores any difference between angle of the two grids; the ice
-; velocities could be inaccurate
-;----------------------------------------------------------------------
-
-  do nv = 0,nvars-1
-      varname = vnames(nv)
-        sname = str_get_cols(varname,0,3)
-   ; skip the iceumask variable and already done variables
-   if(varname .ne. "iceumask" .and.  \
-        sname .ne.     "qice" .and.  \
-        sname .ne.     "qsno" .and.  \
-        sname .ne.     "Tsfc" .and.  \
-        sname .ne.     "sice")then
-     print("regridding variable "+varname)
-          var = f025->$varname$
-   rgtt = ESMF_regrid_with_weights(var,dir+wgtsfile,False)
-   ndims = dimsizes(dimsizes(rgtt))
-   ;print(varname +"  "+ndims)
-
-   ; mask out land contaminated areas. this skips Tin variable
-   if(ndims .eq. 3)then
-     rgtt = where(ismissing(rgmask3d), rgtt@_FillValue, rgtt)
-     ; fill missing areas
-      poisson_grid_fill( rgtt, is_cyclic, guess, nscan, eps, relc, opt)
-     ; apply known land mask
-     rgtt = where(land3d .eq. 0.0, 0.0, rgtt)
-   end if
-
-   if(ndims .eq. 2)then
-     rgtt = where(ismissing(rgmask),   rgtt@_FillValue, rgtt) 
-     ; fill missing areas
-     poisson_grid_fill( rgtt, is_cyclic, guess, nscan, eps, relc, opt)
-     ; apply known land mask
-     rgtt = where(land .eq. 0.0, 0.0, rgtt)
-   end if
-
-   outcdf->$varname$  = (/rgtt/)
-
-     delete(var)
-     delete(rgtt)
-   end if
-  end do
 
 ;----------------------------------------------------------------------
 ; add iceumask, which must be set according the ice concentration
@@ -267,7 +284,7 @@ saltmax = 3.2d0
 
      aicen = outcdf->aicen
       aice = dim_sum_n(aicen,0)
-  iceumask = where(aice.gt.1.0d-11,1.,0.)
+  iceumask = where(aice .ge. puny, 1., 0.)
   outcdf->iceumask = (/iceumask/)
 
   delete(outcdf)
