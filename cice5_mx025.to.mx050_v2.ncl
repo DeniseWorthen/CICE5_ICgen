@@ -21,8 +21,12 @@ saltmax = 3.2d0
 
         dir = "/scratch2/NCEPDEV/climate/Denise.Worthen/TTout/"
 
-   cdate = "2012010100"
+   cdate = "2012100100"
+   ; cice5 initial condition at 025
    icdir = "/scratch1/NCEPDEV/nems/Bin.Li/S2S/FROM_HPSS/"+cdate+"/cpc/"
+   ; specifiy output directory
+   outdir = "/scratch2/NCEPDEV/climate/Denise.Worthen/ICmx050/"+cdate+"/"
+
     g025 = "cice5_model_0.25.res_"+cdate+".nc"
      g05 = "cice5_model_0.50.res_"+cdate+".nc"
 
@@ -113,7 +117,7 @@ saltmax = 3.2d0
 ; set up the output netcdf file
 ;----------------------------------------------------------------------
 
-    outfile = dir+g05
+    outfile = outdir+g05
     print(outfile)
     ;outfile = g05
     system("/bin/rm -f " + outfile)    ; remove if exists
