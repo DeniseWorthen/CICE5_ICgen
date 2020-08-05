@@ -35,9 +35,11 @@ saltmax = 3.2d0
     cres = "mx100"
    end if
 
-   cdate = "2012100100"
+   cdate = "2016100300"
+   ;cdate = "2012100100"
    ; cice5 initial condition at 025
-   icdir = "/scratch1/NCEPDEV/nems/Bin.Li/S2S/FROM_HPSS/"+cdate+"/cpc/"
+   ;icdir = "/scratch1/NCEPDEV/nems/Bin.Li/S2S/FROM_HPSS/"+cdate+"/cpc/"
+   icdir =  "/scratch1/NCEPDEV/stmp4/Denise.Worthen/cice6_baselines/CICE_IC/"
    ; specifiy output directory
    outdir = "/scratch2/NCEPDEV/climate/Denise.Worthen/IC"+cres+"/"+cdate+"/"
 

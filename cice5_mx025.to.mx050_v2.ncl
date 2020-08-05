@@ -21,11 +21,14 @@ saltmax = 3.2d0
 
         dir = "/scratch2/NCEPDEV/climate/Denise.Worthen/TTout/"
 
-   cdate = "2012100100"
+   ;cdate = "2013040100"
+   cdate = "2016100300"
    ; cice5 initial condition at 025
-   icdir = "/scratch1/NCEPDEV/nems/Bin.Li/S2S/FROM_HPSS/"+cdate+"/cpc/"
+   ;icdir = "/scratch1/NCEPDEV/nems/Bin.Li/S2S/FROM_HPSS/"+cdate+"/cpc/"
+   icdir = "/scratch1/NCEPDEV/nems/emc.nemspara/RT/FV3-MOM6-CICE5/develop-20200711/CICE_IC/"
    ; specifiy output directory
-   outdir = "/scratch2/NCEPDEV/climate/Denise.Worthen/ICmx050/"+cdate+"/"
+   ;outdir = "/scratch2/NCEPDEV/climate/Denise.Worthen/ICmx050/"+cdate+"/"
+   outdir = "/scratch2/NCEPDEV/climate/Denise.Worthen/ICmx050/"
 
     g025 = "cice5_model_0.25.res_"+cdate+".nc"
      g05 = "cice5_model_0.50.res_"+cdate+".nc"
