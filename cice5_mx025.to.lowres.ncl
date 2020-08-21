@@ -23,6 +23,7 @@ saltmax = 3.2d0
 
    ;ores = "0.50"
    ores = "1.00"
+
    ; identify output resolution and file name identifiers
    if(ores .eq. "0.50")then
       nj = 576
@@ -35,13 +36,12 @@ saltmax = 3.2d0
     cres = "mx100"
    end if
 
+   ; RT date
    cdate = "2016100300"
-   ;cdate = "2012100100"
    ; cice5 initial condition at 025
-   ;icdir = "/scratch1/NCEPDEV/nems/Bin.Li/S2S/FROM_HPSS/"+cdate+"/cpc/"
-   icdir =  "/scratch1/NCEPDEV/stmp4/Denise.Worthen/cice6_baselines/CICE_IC/"
+   icdir =  "/scratch1/NCEPDEV/nems/emc.nemspara/RT/FV3-MOM6-CICE5/develop-20200711/CICE_IC/"
    ; specifiy output directory
-   outdir = "/scratch2/NCEPDEV/climate/Denise.Worthen/IC"+cres+"/"+cdate+"/"
+   outdir = "/scratch2/NCEPDEV/climate/Denise.Worthen/IC"+cres+"/"
 
     g025 = "cice5_model_0.25.res_"+cdate+".nc"
     gout = "cice5_model_"+ores+".res_"+cdate+".nc"
