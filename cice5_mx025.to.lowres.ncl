@@ -19,10 +19,10 @@ saltmax = 3.2d0
 ;
 ;----------------------------------------------------------------------
 
-        dir = "/scratch2/NCEPDEV/climate/Denise.Worthen/TTout/"
+        dir = "/scratch2/NCEPDEV/climate/Denise.Worthen/TTout2/"
 
-   ;ores = "0.50"
-   ores = "1.00"
+   ores = "0.50"
+   ;ores = "1.00"
 
    ; identify output resolution and file name identifiers
    if(ores .eq. "0.50")then
@@ -89,16 +89,16 @@ saltmax = 3.2d0
       rgmask = where(rgmask   .gt. 0.0, default_fillvalue(typeof(rgmask)),   1.0)
     rgmask3d = where(rgmask3d .gt. 0.0, default_fillvalue(typeof(rgmask3d)), 1.0)
 
-    testfile = "mask_bilinear.nc"
-    system("/bin/rm -f "+testfile)
+    ;testfile = "mask_bilinear.nc"
+    ;system("/bin/rm -f "+testfile)
     ; create
-    testcdf = addfile(testfile,"c")
-    testcdf->rgmask = rgmask
-    testcdf->rgmask3d = rgmask3d
-    testcdf->mask025 = mask025
-    testcdf->land = land
+    ;testcdf = addfile(testfile,"c")
+    ;testcdf->rgmask = rgmask
+    ;testcdf->rgmask3d = rgmask3d
+    ;testcdf->mask025 = mask025
+    ;testcdf->land = land
     ; close
-    delete(testcdf)
+    ;delete(testcdf)
 
     ; set options for poisson_grid_fill
     guess     = 1                ; use zonal means
