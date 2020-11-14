@@ -134,7 +134,7 @@ qsno = 0.d0
 ; Linearly interpolate two layers to 7.
 xm = (t1-t2)*2.0d0
 b = t1 - xm*0.75d0
-Tin(0,:,:,:) = xm*0.929d0 + b 
+Tin(0,:,:,:) = xm*0.929d0 + b
 Tin(1,:,:,:) = xm*0.786d0 + b
 Tin(2,:,:,:) = xm*0.643d0 + b
 Tin(3,:,:,:) = xm*0.500d0 + b
@@ -171,7 +171,7 @@ print(salinz)
 print(Tmltz)
 do k=0,nilyr2-1
    Tin(k,:,:,:) = where(Tin(k,:,:,:).gt.Tmltz(k),Tmltz(k),Tin(k,:,:,:))
-;  qice(k,:,:,:) = -rhoi*(cp_ice*(Tmltz(k)-Tin(k,:,:,:)) + Lfresh*(1.0d0-Tmltz(k)/Tin(k,:,:,:)) - cp_ocn*Tmltz(k)) 
+;  qice(k,:,:,:) = -rhoi*(cp_ice*(Tmltz(k)-Tin(k,:,:,:)) + Lfresh*(1.0d0-Tmltz(k)/Tin(k,:,:,:)) - cp_ocn*Tmltz(k))
    qice(k,:,:,:) = rhoi*cp_ice*Tin(k,:,:,:) - rhoi*Lfresh
    qice(k,:,:,:) = where(vicen.gt.0.d0,qice(k,:,:,:),0.)
 end do

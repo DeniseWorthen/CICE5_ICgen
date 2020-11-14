@@ -1,21 +1,21 @@
 ;************************************************
 ; These files are loaded by default in NCL V6.2.0 and newer
 ; load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_code.ncl"
-; load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl" 
+; load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
 
   load "$NCARG_ROOT/lib/ncarg/nclscripts/contrib/cd_string.ncl"
 
 ; Denise.Worthen@noaa.gov
 
 ; this script is based on a script developed by Dave Baily (dbailey@ucar.edu)
-; and Xingren Wu (xingren.wu@noaa.gov) to convert a SIS restart file to 
-; CICE5 with regridding from 1/2 degree tripolar grid to 1/4 degree 
+; and Xingren Wu (xingren.wu@noaa.gov) to convert a SIS restart file to
+; CICE5 with regridding from 1/2 degree tripolar grid to 1/4 degree
 ;
 ; this script assumes the tiled SIS2 restart files have been combined
 ; into a single tile restart file using mppncombine:
 ; e.g.: ./mppnccombine -m -v -f ice_model.res.nc
 ;
-; both SIS2 and CICE5 use 5 ice thickness categories; these thickness 
+; both SIS2 and CICE5 use 5 ice thickness categories; these thickness
 ; categories are different between the models
 ; SIS2 uses : 1e-10, 0.1, 0.3, 0.7, 1.1 (source: Travis Sluka)
 ; CICE5 uses (kcatbound=0): 0, 0.64, 1.39, 2.47, 4.57
@@ -53,7 +53,7 @@ print("CICE5 mask file used : "+cice5src+ftmaskname)
 kmt = fmask->kmt
 iceumask = todouble(kmt)
 
-; specify the date of the restart being created 
+; specify the date of the restart being created
 ;cdate="2011040100"
 cdate="2011100100"
 
@@ -69,8 +69,8 @@ system("/bin/rm -f "+foutname)
 fout = addfile(foutname,"c")
 print("CICE5 file being created : "+foutname)
 
-; obtain the number of categories 
-; specify the number of layers 
+; obtain the number of categories
+; specify the number of layers
 ; note that part_size includes the first category as open water
 ; both SIS2 and CICE5 use a single snow layer
 
@@ -85,7 +85,7 @@ print("SIS2 input file with ncat = "+ncat+" and nlayers = "+nilyr1)
 print("CICE5 output file with ncat = "+ncat+" and nlayers = "+nilyr2)
 
 ;************************************************
-;define an arbitray axis to linearly interpolate 
+;define an arbitray axis to linearly interpolate
 ;between SIS2's nilyr1 and CICE5's nilyr2
 ;************************************************
 
@@ -116,7 +116,7 @@ use_lint = False
      Tin = new((/nilyr2,ncat,nj,ni/),double)
 
 ;************************************************
-; Retrieve SIS2 variables 
+; Retrieve SIS2 variables
 ; SIS2 variables are stored with time dimension
 ;************************************************
 
@@ -146,14 +146,14 @@ part_size = fin->part_size(0,:,:,:)
 sis2_qice = rhoi*(fin->enth_ice(0,:,:,:,:))
 
 do k = 0,ncat-1
-; ice concentration from part_size; k+1 skips the open 
+; ice concentration from part_size; k+1 skips the open
 ; water category for SIS2
    aicen(k,:,:) = part_size(k+1,:,:)
 end do
 
 ;************************************************
-; linearly interpolate enthalpy between SIS2 4 
-; layers and CICE5 7 layers 
+; linearly interpolate enthalpy between SIS2 4
+; layers and CICE5 7 layers
 ;************************************************
 
 do k = 0,ncat-1
@@ -269,7 +269,7 @@ scale_factor = uvel*0.
     strocnxT = uvel*0.
     strocnyT = uvel*0.
    frz_onset = uvel*0.
-; set all stresses as zero (no longer directly comparable form from SIS2) 
+; set all stresses as zero (no longer directly comparable form from SIS2)
    stressp_1 = uvel*0.
    stressp_2 = uvel*0.
    stressp_3 = uvel*0.

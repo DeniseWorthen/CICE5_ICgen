@@ -1,7 +1,7 @@
 ;************************************************
 ; These files are loaded by default in NCL V6.2.0 and newer
 ; load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_code.ncl"
-; load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl" 
+; load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
 
   load "$NCARG_ROOT/lib/ncarg/nclscripts/contrib/cd_string.ncl"
 
@@ -18,7 +18,7 @@ begin
   ;minlat = 88.0
   ;minlat = 80.0
 
-  ; define something approximating cryosat's 
+  ; define something approximating cryosat's
   ; awful colormap
 
   ;cryosat2 = (/ (/ 45,  51,  34/), (/ 30,  47, 118/), \
@@ -228,4 +228,3 @@ end
 
 exit
 end
-

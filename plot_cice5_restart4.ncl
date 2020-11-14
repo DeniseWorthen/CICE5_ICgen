@@ -1,7 +1,7 @@
 ;************************************************
 ; These files are loaded by default in NCL V6.2.0 and newer
 ; load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_code.ncl"
-; load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl" 
+; load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
 
   load "$NCARG_ROOT/lib/ncarg/nclscripts/contrib/cd_string.ncl"
 
@@ -84,7 +84,7 @@ begin
   wks   = gsn_open_wks (wkstype,wkstitle)
 
   ; panels
-  npanels = dimsizes(dates) 
+  npanels = dimsizes(dates)
   plot = new(npanels,graphic)
    dum = new(npanels,graphic)
 
@@ -197,4 +197,3 @@ end
 
 exit
 end
-

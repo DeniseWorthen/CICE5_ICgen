@@ -41,7 +41,7 @@ begin
     fAtt               = True            ; assign file attributes
     fAtt@creation_date = systemfunc ("date")
     fAtt@source_file   = g025
-    fileattdef( outcdf, fAtt )           ; copy file attributes    
+    fileattdef( outcdf, fAtt )           ; copy file attributes
 
     ; predefine the coordinate variables and their dimensionality
     dimNames = dNames

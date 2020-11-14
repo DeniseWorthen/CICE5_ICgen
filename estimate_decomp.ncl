@@ -4,21 +4,21 @@
 ; desired resolution. It was provided as a code snippet from Dave Bailey
 ; dbailey@ucar.edu
 ;
-; for each PE count, the blkx,blky values are given for slenderX and 
+; for each PE count, the blkx,blky values are given for slenderX and
 ; slenderX2 as well as other less-general use choices (which may
-; require changes to process_shape and distribution weight also. 
+; require changes to process_shape and distribution weight also.
 ;----------------------------------------------------------------------
 begin
 
 ; mx100 decomps
-;nx = 360
-;ny = 320
+nx = 360
+ny = 320
 ; mx050 decomps
 ;nx = 720
 ;ny = 576
 ; mx025 decomps
-nx = 1440
-ny = 1080
+;nx = 1440
+;ny = 1080
 
 primesx = (/1,2,2,2,2,3,3,5/)
 primesy = (/1,2,5,41/)

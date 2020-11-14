@@ -60,13 +60,13 @@ saltmax = 3.2d0
    nslyr = 1
 
     ; get the known land for output grid
-         gr = addfile(dir+"grid_cice_NEMS_"+cres+".nc","r") 
+         gr = addfile(dir+"grid_cice_NEMS_"+cres+".nc","r")
       land = where(gr->kmt .eq. 0, 0.0d0, 1.0d0)
-    land3d = conform_dims((/ncat,nj,ni/),land,(/1,2/)) 
+    land3d = conform_dims((/ncat,nj,ni/),land,(/1,2/))
     delete(gr)
 
    ; the mask contains 1's on land and 0's at valid points.
-         gr = addfile(dir+"grid_cice_NEMS_mx025.nc","r") 
+         gr = addfile(dir+"grid_cice_NEMS_mx025.nc","r")
     mask025 = where(gr->kmt .eq. 0, 1.0, 0.0)
     delete(gr)
    ; regrid the mask to obtain the interpolation masks.
@@ -78,7 +78,7 @@ saltmax = 3.2d0
    ; specify the tripole-to-tripole weights file
     wgtsfile = "tripole.mx025.Ct.to."+cres+".Ct.neareststod.nc"
       rgmask = ESMF_regrid_with_weights(mask025, dir+wgtsfile,False)
-    rgmask3d = conform_dims((/ncat,nj,ni/),rgmask,(/1,2/)) 
+    rgmask3d = conform_dims((/ncat,nj,ni/),rgmask,(/1,2/))
 
     ;printVarSummary(rgmask)
     ;printVarSummary(rgmask3d)
@@ -143,7 +143,7 @@ saltmax = 3.2d0
     fAtt               = True            ; assign file attributes
     fAtt@creation_date = systemfunc ("date")
     fAtt@source_file   = g025
-    fileattdef( outcdf, fAtt )           ; copy file attributes    
+    fileattdef( outcdf, fAtt )           ; copy file attributes
 
     ; predefine the coordinate variables and their dimensionality
     dimNames = dNames
@@ -210,7 +210,7 @@ saltmax = 3.2d0
    end if
 
    if(ndims .eq. 2)then
-     ; rgtt = where(ismissing(rgmask),   rgtt@_FillValue, rgtt) 
+     ; rgtt = where(ismissing(rgmask),   rgtt@_FillValue, rgtt)
      ; fill missing areas
      ; poisson_grid_fill( rgtt, is_cyclic, guess, nscan, eps, relc, opt)
      ; apply known land mask
@@ -287,7 +287,7 @@ saltmax = 3.2d0
   outcdf->sice005 = (/sice(4,:,:,:)/)
   outcdf->sice006 = (/sice(5,:,:,:)/)
   outcdf->sice007 = (/sice(6,:,:,:)/)
-  ; write the Tsfcn and qsno 
+  ; write the Tsfcn and qsno
   outcdf->Tsfcn   = (/rgtt/)
   outcdf->qsno001 = (/qsno(0,:,:,:)/)
   delete(rgtt)
