@@ -15,38 +15,52 @@ saltmax = 3.2d0
  Lfresh = 3.34d5
    puny = 1.0d-3
 
+; set options for poisson_grid_fill
+  guess     = 1                ; use zonal means
+  is_cyclic = True             ; cyclic [global]
+  nscan     = 1500             ; usually much less than this
+  eps       = 1.e-2            ; variable dependent
+  relc      = 0.6              ; relaxation coefficient
+  opt       = 0                ; not used
+
 ;----------------------------------------------------------------------
 ;
 ;----------------------------------------------------------------------
 
-        dir = "/scratch2/NCEPDEV/climate/Denise.Worthen/TTout2/"
+  ; specify grid and weights directory
+   grdsrc = "/scratch2/NCEPDEV/climate/Denise.Worthen/GRIDS/"
+  ; specify IC source directory
+  ; CPC reanalysis
+  ;  icsrc = "/scratch2/NCEPDEV/climate/climpara/S2S/IC/CPC/"
+  ; RT IC (20161003 only)
+    icsrc = "/scratch1/NCEPDEV/nems/emc.nemspara/RT/NEMSfv3gfs/input-data-20201201/CICE_IC/"
+  ; specify output directory
+   dirout = "/scratch2/NCEPDEV/climate/Denise.Worthen/NEWIC/"
+  ; specify a date
+    cdate = "2016100300"
 
-   ores = "0.50"
-   ;ores = "1.00"
+  ; specify the output resolution identifiers and grid size
+  output = (/"0.50", "mx050" /)
+  outsiz = (/576,720/)
+  ;output = (/"1.00", "mx100" /)
+  ;outsiz = (/320,360/)
 
-   ; identify output resolution and file name identifiers
-   if(ores .eq. "0.50")then
-      nj = 576
-      ni = 720
-    cres = "mx050"
-   end if
-   if(ores .eq. "1.00")then
-      nj = 320
-      ni = 360
-    cres = "mx100"
-   end if
+   ores = output(0)
+   cres = output(1)
+     nj = outsiz(0)
+     ni = outsiz(1)
 
-   ; RT date
-   cdate = "2016100300"
-   ; cice5 initial condition at 025
-   icdir =  "/scratch1/NCEPDEV/nems/emc.nemspara/RT/FV3-MOM6-CICE5/develop-20200711/CICE_IC/"
-   ; specifiy output directory
-   outdir = "/scratch2/NCEPDEV/climate/Denise.Worthen/IC"+cres+"/"
+;----------------------------------------------------------------------
+;
+;----------------------------------------------------------------------
 
-    g025 = "cice5_model_0.25.res_"+cdate+".nc"
-    gout = "cice5_model_"+ores+".res_"+cdate+".nc"
+   ic025 = "cice_model_0.25.res_"+cdate+".nc"
+    fout = "cice_model_"+ores+".res_"+cdate+".nc"
 
-   f025 = addfile(icdir+g025,"r")
+   ; if using CPC reanalysis
+   ;f025 = addfile(icsrc+cdate+"/ice/025/"+ic025,"r")
+   ; if RT IC
+   f025 = addfile(icsrc+"025/"+ic025,"r")
 
    vnames = getfilevarnames(f025)
     nvars = dimsizes(vnames)
@@ -59,14 +73,18 @@ saltmax = 3.2d0
     ncat = dSizes(1)
    nslyr = 1
 
+;----------------------------------------------------------------------
+;
+;----------------------------------------------------------------------
+
     ; get the known land for output grid
-         gr = addfile(dir+"grid_cice_NEMS_"+cres+".nc","r")
+         gr = addfile(grdsrc+"grid_cice_NEMS_"+cres+".nc","r")
       land = where(gr->kmt .eq. 0, 0.0d0, 1.0d0)
     land3d = conform_dims((/ncat,nj,ni/),land,(/1,2/))
     delete(gr)
 
    ; the mask contains 1's on land and 0's at valid points.
-         gr = addfile(dir+"grid_cice_NEMS_mx025.nc","r")
+         gr = addfile(grdsrc+"grid_cice_NEMS_mx025.nc","r")
     mask025 = where(gr->kmt .eq. 0, 1.0, 0.0)
     delete(gr)
    ; regrid the mask to obtain the interpolation masks.
@@ -77,7 +95,7 @@ saltmax = 3.2d0
 
    ; specify the tripole-to-tripole weights file
     wgtsfile = "tripole.mx025.Ct.to."+cres+".Ct.neareststod.nc"
-      rgmask = ESMF_regrid_with_weights(mask025, dir+wgtsfile,False)
+      rgmask = ESMF_regrid_with_weights(mask025, grdsrc+wgtsfile,False)
     rgmask3d = conform_dims((/ncat,nj,ni/),rgmask,(/1,2/))
 
     ;printVarSummary(rgmask)
@@ -100,13 +118,9 @@ saltmax = 3.2d0
     ; close
     ;delete(testcdf)
 
-    ; set options for poisson_grid_fill
-    guess     = 1                ; use zonal means
-    is_cyclic = True             ; cyclic [global]
-    nscan     = 1500             ; usually much less than this
-    eps       = 1.e-2            ; variable dependent
-    relc      = 0.6              ; relaxation coefficient
-    opt       = 0                ; not used
+;----------------------------------------------------------------------
+; define required variables
+;----------------------------------------------------------------------
 
    ; a reasonable salinity profile
    salinz = new((/nilyr/),double)
@@ -130,9 +144,9 @@ saltmax = 3.2d0
 ; set up the output netcdf file
 ;----------------------------------------------------------------------
 
-    outfile = outdir+gout
+    outfile = dirout+fout
     print(outfile)
-    ;outfile = gout
+    ;outfile = fout
     system("/bin/rm -f " + outfile)    ; remove if exists
     outcdf  = addfile (outfile, "c")  ; open output file
 
@@ -142,7 +156,7 @@ saltmax = 3.2d0
     ; create global attributes of the file
     fAtt               = True            ; assign file attributes
     fAtt@creation_date = systemfunc ("date")
-    fAtt@source_file   = g025
+    fAtt@source_file   = ic025
     fileattdef( outcdf, fAtt )           ; copy file attributes
 
     ; predefine the coordinate variables and their dimensionality
@@ -178,7 +192,6 @@ saltmax = 3.2d0
     ; explicitly exit file definition mode.
     setfileoption(outcdf,"DefineMode",False)
 
-;if(1.eq.0)then
 ;----------------------------------------------------------------------
 ; regrid each variable and place in output cdf
 ; this ignores any difference between angle of the two grids; the ice
@@ -196,7 +209,7 @@ saltmax = 3.2d0
         sname .ne.     "sice")then
      print("regridding variable "+varname)
           var = f025->$varname$
-   rgtt = ESMF_regrid_with_weights(var,dir+wgtsfile,False)
+   rgtt = ESMF_regrid_with_weights(var,grdsrc+wgtsfile,False)
    ndims = dimsizes(dimsizes(rgtt))
    ;print(varname +"  "+ndims)
 
@@ -235,7 +248,7 @@ saltmax = 3.2d0
 ;----------------------------------------------------------------------
 
   ; regrid the surface temperature field
-  rgtt = ESMF_regrid_with_weights(f025->Tsfcn,dir+wgtsfile,False)
+  rgtt = ESMF_regrid_with_weights(f025->Tsfcn,grdsrc+wgtsfile,False)
   ;rgtt = where(ismissing(rgmask3d), rgtt@_FillValue, rgtt)
   ; fill missing areas
   ;poisson_grid_fill( rgtt, is_cyclic, guess, nscan, eps, relc, opt)
@@ -248,7 +261,7 @@ saltmax = 3.2d0
    if(str_get_cols(varname,0,3) .eq. "qice")then
     do kk = 0,nilyr-1
      qname = "qice"+sprinti("%0.3i",kk+1)
-     qice(kk,:,:,:) = ESMF_regrid_with_weights(f025->$qname$,dir+wgtsfile,False)
+     qice(kk,:,:,:) = ESMF_regrid_with_weights(f025->$qname$,grdsrc+wgtsfile,False)
       Tin(kk,:,:,:) = (qice(kk,:,:,:) + rhoi*Lfresh)/(rhoi*cp_ice)
       Tin(kk,:,:,:) = where(Tin(kk,:,:,:) .gt. Tmltz(kk), Tmltz(kk), Tin(kk,:,:,:))
      qice(kk,:,:,:) = rhoi*cp_ice*Tin(kk,:,:,:) - rhoi*Lfresh
@@ -257,7 +270,7 @@ saltmax = 3.2d0
    ;if(str_get_cols(varname,0,3) .eq. "qsno")then
    ; do kk = 0,nslyr-1
    ;  qname = "qsno"+sprinti("%0.3i",kk+1)
-   ;  qsno(kk,:,:,:) = ESMF_regrid_with_weights(f025->$qname$,dir+wgtsfile,False)
+   ;  qsno(kk,:,:,:) = ESMF_regrid_with_weights(f025->$qname$,grdsrc+wgtsfile,False)
    ; end do
    ;end if
   end do
@@ -291,7 +304,6 @@ saltmax = 3.2d0
   outcdf->Tsfcn   = (/rgtt/)
   outcdf->qsno001 = (/qsno(0,:,:,:)/)
   delete(rgtt)
-;end if
 
 ;----------------------------------------------------------------------
 ; add iceumask, which must be set according the ice concentration
@@ -305,6 +317,5 @@ saltmax = 3.2d0
   outcdf->iceumask = (/iceumask/)
 
   delete(outcdf)
-;end if
 exit
 end
