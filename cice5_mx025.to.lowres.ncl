@@ -30,7 +30,9 @@ saltmax = 3.2d0
   ; specify grid and weights directory
    grdsrc = "/scratch2/NCEPDEV/climate/Denise.Worthen/GRIDS/"
   ; specify IC source directory
+  ; CPC reanalysis
   ;  icsrc = "/scratch2/NCEPDEV/climate/climpara/S2S/IC/CPC/"
+  ; RT IC (20161003 only)
     icsrc = "/scratch1/NCEPDEV/nems/emc.nemspara/RT/NEMSfv3gfs/input-data-20201201/CICE_IC/"
   ; specify output directory
    dirout = "/scratch2/NCEPDEV/climate/Denise.Worthen/NEWIC/"
@@ -52,11 +54,13 @@ saltmax = 3.2d0
 ;
 ;----------------------------------------------------------------------
 
-    g025 = "cice_model_0.25.res_"+cdate+".nc"
-    gout = "cice_model_"+ores+".res_"+cdate+".nc"
+   ic025 = "cice_model_0.25.res_"+cdate+".nc"
+    fout = "cice_model_"+ores+".res_"+cdate+".nc"
 
-   ;f025 = addfile(icsrc+cdate+"/ice/025/"+g025,"r")
-   f025 = addfile(icsrc+"025/"+g025,"r")
+   ; if using CPC reanalysis
+   ;f025 = addfile(icsrc+cdate+"/ice/025/"+ic025,"r")
+   ; if RT IC
+   f025 = addfile(icsrc+"025/"+ic025,"r")
 
    vnames = getfilevarnames(f025)
     nvars = dimsizes(vnames)
@@ -140,9 +144,9 @@ saltmax = 3.2d0
 ; set up the output netcdf file
 ;----------------------------------------------------------------------
 
-    outfile = dirout+gout
+    outfile = dirout+fout
     print(outfile)
-    ;outfile = gout
+    ;outfile = fout
     system("/bin/rm -f " + outfile)    ; remove if exists
     outcdf  = addfile (outfile, "c")  ; open output file
 
@@ -152,7 +156,7 @@ saltmax = 3.2d0
     ; create global attributes of the file
     fAtt               = True            ; assign file attributes
     fAtt@creation_date = systemfunc ("date")
-    fAtt@source_file   = g025
+    fAtt@source_file   = ic025
     fileattdef( outcdf, fAtt )           ; copy file attributes
 
     ; predefine the coordinate variables and their dimensionality
