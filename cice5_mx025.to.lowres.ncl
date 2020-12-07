@@ -40,10 +40,12 @@ saltmax = 3.2d0
     cdate = "2016100300"
 
   ; specify the output resolution identifiers and grid size
-  output = (/"0.50", "mx050" /)
-  outsiz = (/576,720/)
+  ;output = (/"0.50", "mx050" /)
+  ;outsiz = (/576,720/)
   ;output = (/"1.00", "mx100" /)
   ;outsiz = (/320,360/)
+  output = (/"0.72", "mx072" /)
+  outsiz = (/381,500/)
 
    ores = output(0)
    cres = output(1)
