@@ -24,18 +24,18 @@ begin
   ncat = 5
 
   ; to plot a restart in the RT IC directory
-  restarttype="RT" (1,1/2,1/4 deg)
+  ;restarttype="RT" ;(1,1/2,1/4 deg, single date)
   ; to plot a restart from the Prototype IC directory
-  ;restarttype="BM" (1/4deg only)
+  ;restarttype="BM" ;(1/4deg only, 168 dates)
   ; to plot a low restart created in specified directory
-  ;restarttype="NEW"
+  restarttype="NEW"
   
   ; arrays of characterstrings to set locations and filenames
   ;  fsrcs => tripole grid file
   ; rtsrcs => subdirs for the rt ICs
   ;  csrcs => cice restart file
     fsrcs = (/ "mx100",  "mx050",  "mx025", "mx072", "mx300"/)
-   rtsrcs = (/  "100/",   "050/",   "025/",  "072/",  "300/"/)
+   rtsrcs = (/   "100",    "050",    "025",   "072",   "300"/)
     csrcs = (/  "1.00",   "0.50",   "0.25",  "0.72",  "3.00"/)
   ; seam longitude for each res
      lons = (/    60.0,     60.0,     60.0,   73.75,   75.00/)
@@ -54,22 +54,29 @@ begin
    grdsrc = "/scratch2/NCEPDEV/climate/Denise.Worthen/GRIDS/"
   grdfile = "tripole."+fsrcs(ires)+".nc"
 
-   ;  cdate = "2016100300"
-   ;  icsrc = "/scratch1/NCEPDEV/nems/emc.nemspara/RT/NEMSfv3gfs/input-data-20201201/CICE_IC/"+rtsrcs(ires)+"/"
-   ;icefile = "cice_model_"+csrcs(ires)+".res_"+cdate+".nc"
+  if(restarttype .eq. "RT")then
+    ;only 1 date
+     cdate = "2016100300"
+     icsrc = "/scratch1/NCEPDEV/nems/emc.nemspara/RT/NEMSfv3gfs/input-data-20201201/CICE_IC/"+rtsrcs(ires)+"/"
+   icefile = "cice_model_"+csrcs(ires)+".res_"+cdate+".nc"
+  end if
 
-   ; only 1/4deg
-   ;  cdate = "2011070100"
-   ;  icsrc = "/scratch2/NCEPDEV/climate/climpara/S2S/IC/CPC/"+cdate+"/ice/025/"
-   ;icefile = "cice5_model_"+csrcs(ires)+".res_"+cdate+".nc"
+  if(restarttype .eq. "BM")then
+    ;only 1/4deg
+     cdate = "2011070100"
+     icsrc = "/scratch2/NCEPDEV/climate/climpara/S2S/IC/CPC/"+cdate+"/ice/025/"
+   icefile = "cice5_model_"+csrcs(ires)+".res_"+cdate+".nc"
+  end if
 
+  if(restarttype .eq. "NEW")then
    ; pick a date
-    cdate = "2011070100"
-    icsrc = "/scratch2/NCEPDEV/climate/Denise.Worthen/NEWIC/"
-  icefile = "cice_model_"+csrcs(ires)+".res_"+cdate+".nc"
+     cdate = "2011070100"
+     icsrc = "/scratch2/NCEPDEV/climate/Denise.Worthen/NEWIC/"
+   icefile = "cice_model_"+csrcs(ires)+".res_"+cdate+".nc"
+  end if
 
-  print("using grid file "+grdfile)
-  print("using IC file "+icefile)
+  print("using grid file "+grdsrc+grdfile)
+  print("using IC file "+icsrc+icefile)
 
     gf = addfile(grdsrc+grdfile,"r")
   icef = addfile(icsrc+icefile,"r")
