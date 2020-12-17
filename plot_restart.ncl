@@ -14,21 +14,69 @@ begin
   RT3 = "/scratch2/NCEPDEV/stmp3/Denise.Worthen/"
   RT4 = "/scratch1/NCEPDEV/stmp4/Denise.Worthen/"
 
-  ;hemi="SH"
+  hemi="SH"
+  ;maxlat = -50
+  maxlat = -66
 
-  hemi="NH"
-  minlat = 60.0
+  ;hemi="NH"
+  ;minlat = 60.0
 
   ncat = 5
+
+  ; to plot a restart in the RT IC directory
+  restarttype="RT" (1,1/2,1/4 deg)
+  ; to plot a restart from the Prototype IC directory
+  ;restarttype="BM" (1/4deg only)
+  ; to plot a low restart created in specified directory
+  ;restarttype="NEW"
+  
+  ; arrays of characterstrings to set locations and filenames
+  ;  fsrcs => tripole grid file
+  ; rtsrcs => subdirs for the rt ICs
+  ;  csrcs => cice restart file
+    fsrcs = (/ "mx100",  "mx050",  "mx025", "mx072", "mx300"/)
+   rtsrcs = (/  "100/",   "050/",   "025/",  "072/",  "300/"/)
+    csrcs = (/  "1.00",   "0.50",   "0.25",  "0.72",  "3.00"/)
+  ; seam longitude for each res
+     lons = (/    60.0,     60.0,     60.0,   73.75,   75.00/)
+
+  ;ires = 0 ; 1deg
+  ;ires = 1 ; 1/2deg
+  ;ires = 2 ; 1/4deg
+  ;ires = 3 ; 072deg
+  ires = 4 ; 3deg
+
+;************************************************
+; specify the timestamp of the file, location
+; and the matching grid file
+;************************************************
+
+   grdsrc = "/scratch2/NCEPDEV/climate/Denise.Worthen/GRIDS/"
+  grdfile = "tripole."+fsrcs(ires)+".nc"
+
+   ;  cdate = "2016100300"
+   ;  icsrc = "/scratch1/NCEPDEV/nems/emc.nemspara/RT/NEMSfv3gfs/input-data-20201201/CICE_IC/"+rtsrcs(ires)+"/"
+   ;icefile = "cice_model_"+csrcs(ires)+".res_"+cdate+".nc"
+
+   ; only 1/4deg
+   ;  cdate = "2011070100"
+   ;  icsrc = "/scratch2/NCEPDEV/climate/climpara/S2S/IC/CPC/"+cdate+"/ice/025/"
+   ;icefile = "cice5_model_"+csrcs(ires)+".res_"+cdate+".nc"
+
+   ; pick a date
+    cdate = "2011070100"
+    icsrc = "/scratch2/NCEPDEV/climate/Denise.Worthen/NEWIC/"
+  icefile = "cice_model_"+csrcs(ires)+".res_"+cdate+".nc"
+
+  print("using grid file "+grdfile)
+  print("using IC file "+icefile)
+
+    gf = addfile(grdsrc+grdfile,"r")
+  icef = addfile(icsrc+icefile,"r")
 
 ;************************************************
 ;
 ;************************************************
-
-   cdate = "2016100300"
-  grdsrc = "/scratch2/NCEPDEV/climate/Denise.Worthen/GRIDS/"
-   icsrc = "/scratch2/NCEPDEV/climate/Denise.Worthen/NEWIC/"
-   ;icsrc = "/scratch1/NCEPDEV/nems/emc.nemspara/RT/NEMSfv3gfs/input-data-20201201/CICE_IC/"
 
   ; in grdsrc
   latname = "latCt"
@@ -47,34 +95,6 @@ begin
   plotlevs(1,:) = (/  0.0,  3.00,  0.10/)
   plotlevs(2,:) = (/  0.0,  0.50,  0.05/)
   plotlevs(3,:) = (/-20.0,  0.00,  1.00/)
-
-;************************************************
-;
-;************************************************
-
-   ; arrays of characterstrings to set locations and filenames
-   ;  fsrcs => tripole grid file
-   ; rtsrcs => subdirs for the rt ICs
-   ;  csrcs => cice restart file
-    fsrcs = (/ "mx100",  "mx050",  "mx025", "mx072"/)
-   rtsrcs = (/  "100/",   "050/",   "025/",  "072/"/)
-    csrcs = (/  "1.00",   "0.50",   "0.25",  "0.72"/)
-   ; seam longitude for each res
-     lons = (/    60.0,     60.0,     60.0,   73.75/)
-
-  ;ires = 0 ; 1deg
-  ;ires = 1 ; 1/2deg
-  ;ires = 2 ; 1/4deg
-  ires = 3 ; 072deg
-
-  grdfile = "tripole."+fsrcs(ires)+".nc"
-  icefile = "cice_model_"+csrcs(ires)+".res_"+cdate+".nc"
-  print("using grid file "+grdfile)
-  print("using IC file "+icefile)
-
-    gf = addfile(grdsrc+grdfile,"r")
-  ;icef = addfile(icsrc+rtsrcs(ires)+icefile,"r")
-  icef = addfile(icsrc+icefile,"r")
 
   ; retrieve lat,lon,mask
   lon2d = gf->$lonname$
@@ -131,7 +151,7 @@ begin
    res@mpCenterLonF = -45
   end if
   if(hemi .eq. "SH")then
-   res@mpMaxLatF    = -50                        ; maximum lat to plot
+   res@mpMaxLatF    = maxlat                     ; maximum lat to plot
    res@mpCenterLonF = 0.0
   end if
 
@@ -170,9 +190,9 @@ end
 ;
 ;************************************************
  
-  ii = 3
+  ii = 0
 
-  do ii = 0,nflds-1
+  ;do ii = 0,nflds-1
 
    vname = iceflds(ii)
     levs = plotlevs(ii,:)
@@ -194,7 +214,7 @@ end
    plot(ii) = subplot(ii," ",vname+" "+cdate,icevar,levs)
     dum(ii) = gsn_add_polyline(wks,plot(ii),(/lon1, lon2/) , (/lat1, lat2/) ,pres)
    delete([/icevar,var/])
-  end do
+  ;end do
 
 ;************************************************
 ; panel the plots
@@ -205,8 +225,8 @@ end
  ;resP@gsnPanelYWhiteSpacePercent = 5
  ;resP@gsnPanelXWhiteSpacePercent = 5
 
-  ;gsn_panel(wks,plot,(/1,1/),resP)               ; now draw as one plot
-  gsn_panel(wks,plot,(/2,2/),resP)               ; now draw as one plot
+  gsn_panel(wks,plot,(/1,1/),resP)               ; now draw as one plot
+  ;gsn_panel(wks,plot,(/2,2/),resP)               ; now draw as one plot
 
 ;************************************************
 ;
