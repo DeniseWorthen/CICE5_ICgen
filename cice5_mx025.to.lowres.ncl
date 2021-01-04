@@ -38,7 +38,8 @@ saltmax = 3.2d0
    dirout = "/scratch2/NCEPDEV/climate/Denise.Worthen/NEWIC/"
   ; specify a date
   ;  cdate = "2016100300"
-    cdate = "2011070100"
+  ;  cdate = "2011070100"
+    cdate = "2011100100"
 
   ; specify the output resolution identifiers and grid size
   ;output = (/"0.50", "mx050" /)
@@ -49,24 +50,33 @@ saltmax = 3.2d0
   ;outsiz = (/381,500/)
   output = (/"3.00", "mx300" /)
   outsiz = (/84,120/)
-
+  
    ores = output(0)
    cres = output(1)
      nj = outsiz(0)
      ni = outsiz(1)
 
+  ; use filling in extra ocean regions of 3deg grid
+  if(output(0) .eq. "3.00")then
+   ;use_poisson = "true"
+   use_poisson = "false"
+  else
+   use_poisson = "false"
+  end if
+
 ;----------------------------------------------------------------------
 ;
 ;----------------------------------------------------------------------
 
-   ic025 = "cice5_model_0.25.res_"+cdate+".nc"
-    fout = "cice_model_"+ores+".res_"+cdate+".nc"
-   print(ic025)
-
+    ;fout = "cice_model_"+ores+".res_"+cdate+".nc"
+    fout = "cice_model_"+ores+".cpc.res_"+cdate+".nc"
+ 
    ; if using CPC reanalysis
-   f025 = addfile(icsrc+cdate+"/ice/025/"+ic025,"r")
+   ic025 = "cice5_model_0.25.res_"+cdate+".nc"
+    f025 = addfile(icsrc+cdate+"/ice/025/"+ic025,"r")
    ; if RT IC
    ;f025 = addfile(icsrc+"025/"+ic025,"r")
+   ;ic025 = "cice_model_0.25.res_"+cdate+".nc"
 
    vnames = getfilevarnames(f025)
     nvars = dimsizes(vnames)
@@ -221,17 +231,21 @@ saltmax = 3.2d0
 
    ; mask out land contaminated areas. this skips Tin variable
    if(ndims .eq. 3)then
-     ; rgtt = where(ismissing(rgmask3d), rgtt@_FillValue, rgtt)
+    if(use_poisson .eq. "true")then
+     rgtt = where(ismissing(rgmask3d), rgtt@_FillValue, rgtt)
      ; fill missing areas
-     ; poisson_grid_fill( rgtt, is_cyclic, guess, nscan, eps, relc, opt)
+      poisson_grid_fill( rgtt, is_cyclic, guess, nscan, eps, relc, opt)
+    end if
      ; apply known land mask
      rgtt = where(land3d .eq. 0.0, 0.0, rgtt)
    end if
 
    if(ndims .eq. 2)then
-     ; rgtt = where(ismissing(rgmask),   rgtt@_FillValue, rgtt)
+    if(use_poisson .eq. "true")then
+      rgtt = where(ismissing(rgmask),   rgtt@_FillValue, rgtt)
      ; fill missing areas
-     ; poisson_grid_fill( rgtt, is_cyclic, guess, nscan, eps, relc, opt)
+      poisson_grid_fill( rgtt, is_cyclic, guess, nscan, eps, relc, opt)
+    end if
      ; apply known land mask
      rgtt = where(land .eq. 0.0, 0.0, rgtt)
    end if
@@ -248,16 +262,12 @@ saltmax = 3.2d0
   ;    aice = dim_sum_n(aicen,0)
   ;    aice = where(aice .lt. puny, 0.0d0, aice)
 
-;if(1.eq.0)then
 ;----------------------------------------------------------------------
 ; retrieve the layer variables
 ;----------------------------------------------------------------------
 
   ; regrid the surface temperature field
   rgtt = ESMF_regrid_with_weights(f025->Tsfcn,grdsrc+wgtsfile,False)
-  ;rgtt = where(ismissing(rgmask3d), rgtt@_FillValue, rgtt)
-  ; fill missing areas
-  ;poisson_grid_fill( rgtt, is_cyclic, guess, nscan, eps, relc, opt)
   do k=0,nslyr-1
    qsno(k,:,:,:) = -rhos*(Lfresh - cp_ice*rgtt(:,:,:))
   end do

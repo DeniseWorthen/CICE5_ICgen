@@ -70,7 +70,8 @@ begin
 
   if(restarttype .eq. "NEW")then
    ; pick a date
-     cdate = "2011070100"
+     ;cdate = "2011070100"
+     cdate = "2016100300"
      icsrc = "/scratch2/NCEPDEV/climate/Denise.Worthen/NEWIC/"
    icefile = "cice_model_"+csrcs(ires)+".res_"+cdate+".nc"
   end if
@@ -197,12 +198,15 @@ end
 ;
 ;************************************************
  
-  ii = 0
+  ;ifld = 0
+  ifld = 3 ; tsfcn only
 
+   ii = 0
   ;do ii = 0,nflds-1
+  ; ifld = ii
 
-   vname = iceflds(ii)
-    levs = plotlevs(ii,:)
+   vname = iceflds(ifld)
+    levs = plotlevs(ifld,:)
    print("plotting variable "+vname)
 
    ; retrieve category vars
@@ -229,11 +233,14 @@ end
 
   resP                     = True                ; modify the panel plot
                                                  ; new resource added in NCL V6.4.0
+  resP@gsnPanelMainString = icsrc
+  resP@gsnPanelMainFontHeightF = 0.01
+
  ;resP@gsnPanelYWhiteSpacePercent = 5
  ;resP@gsnPanelXWhiteSpacePercent = 5
 
-  gsn_panel(wks,plot,(/1,1/),resP)               ; now draw as one plot
-  ;gsn_panel(wks,plot,(/2,2/),resP)               ; now draw as one plot
+  ;gsn_panel(wks,plot,(/1,1/),resP)               ; now draw as one plot
+  gsn_panel(wks,plot,(/2,2/),resP)               ; now draw as one plot
 
 ;************************************************
 ;
