@@ -14,12 +14,12 @@ begin
   RT3 = "/scratch2/NCEPDEV/stmp3/Denise.Worthen/"
   RT4 = "/scratch1/NCEPDEV/stmp4/Denise.Worthen/"
 
-  hemi="SH"
+  ;hemi="SH"
   ;maxlat = -50
-  maxlat = -66
+  ;maxlat = -66
 
-  ;hemi="NH"
-  ;minlat = 60.0
+  hemi="NH"
+  minlat = 60.0
 
   ncat = 5
 
@@ -43,8 +43,8 @@ begin
   ;ires = 0 ; 1deg
   ;ires = 1 ; 1/2deg
   ;ires = 2 ; 1/4deg
-  ;ires = 3 ; 072deg
-  ires = 4 ; 3deg
+  ires = 3 ; 072deg
+  ;ires = 4 ; 3deg
 
 ;************************************************
 ; specify the timestamp of the file, location
@@ -199,11 +199,11 @@ end
 ;************************************************
  
   ;ifld = 0
-  ifld = 3 ; tsfcn only
+  ;ifld = 3 ; tsfcn only
 
    ii = 0
-  ;do ii = 0,nflds-1
-  ; ifld = ii
+  do ii = 0,nflds-1
+   ifld = ii
 
    vname = iceflds(ifld)
     levs = plotlevs(ifld,:)
@@ -225,7 +225,7 @@ end
    plot(ii) = subplot(ii," ",vname+" "+cdate,icevar,levs)
     dum(ii) = gsn_add_polyline(wks,plot(ii),(/lon1, lon2/) , (/lat1, lat2/) ,pres)
    delete([/icevar,var/])
-  ;end do
+  end do
 
 ;************************************************
 ; panel the plots
