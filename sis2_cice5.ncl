@@ -60,6 +60,7 @@ finname="ice_model.res_GAEA.nc"
 fin  = addfile(sis2src+finname,"r")
 print("SIS2 file being converted : "+sis2src+finname)
 
+setfileoption("nc","format","LargeFile")
 ; specify the name of the new CICE5 restart file
 foutname="cice5_model_0.008.res_"+cdate+".nc"
 ; get output file ready
@@ -235,7 +236,6 @@ scale_factor = uvel*0.
 write_the_file = "yes"
 if(write_the_file .eq. "yes")then
 
-setfileoption("nc","format","LargeFile")
 
 setfileoption(fout,"DefineMode",True)
 
