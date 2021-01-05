@@ -113,6 +113,20 @@ begin
   wkstitle = cdate+"_"+fsrcs(ires)
 
 ;************************************************
+; add the bathy file and data for 072 resolution case
+;************************************************
+
+  if(ires .eq. 3)then
+    bathsrc = "/scratch2/NCEPDEV/climate/Denise.Worthen/Hae-Cheol/INPUT/072/"
+   bathfile = "depth_GLBt0.72_15_mom6.nc"
+
+      bf = addfile(bathsrc+bathfile,"r")
+   bathy = bf->depth
+   bathy@lon2d = lon2d
+   bathy@lat2d = lat2d
+  end if
+
+;************************************************
 ; great circle path from (lon1,lat1) to (lon2,lat2)
 ;************************************************
   
@@ -137,13 +151,14 @@ begin
   npanels = nflds
   plot = new(npanels,graphic)
    dum = new(npanels,graphic)
+ oplot = new(npanels,graphic)
 
   res                      = True        ; plot mods desired
   res@gsnDraw              = False       ; do not draw until the end
   res@gsnFrame             = False       ; do not automatically advance 'frame'
 
   res@mpFillOn    = False
-  res@mpOutlineOn = False
+  res@mpOutlineOn = True
   ;res@cnFillMode           = "MeshFill"
   res@cnFillMode           = "RasterFill"
   res@cnFillDrawOrder      = "PreDraw"             ; draw contours first
@@ -167,6 +182,24 @@ begin
   res@cnMissingValFillColor   = "gray"           ; color fill missing areas grey
 
   res@cnFillPalette           = "amwg256"        ; choose colormap
+
+;************************************************
+; resources for bathy overlay
+;************************************************
+
+  ores                  = True        ; plot mods desired
+  ores@cnLineThicknessF = 2.0            ; line thickness
+  ores@cnLineLabelsOn   = False
+  ores@cnInfoLabelOn    = False
+  ores@gsnDraw          = False ; don't draw
+  ores@gsnFrame         = False ; don't advance frame
+  ores@gsnLeftString    = ""    ; no titles
+  ores@gsnRightString   = ""
+  ores@cnLevelSelectionMode = "ExplicitLevels"     ; set the contour levels with the following 3 resources
+  ;ores@cnLineColor = "green"
+  ores@cnMonoLineColor = False
+  ores@cnLineColors = (/"green","red"/)
+  ores@cnLevels = (/20.0, 100.0/)
 
 ;************************************************
 ; Resources for the polyline
@@ -198,11 +231,11 @@ end
 ;
 ;************************************************
  
-  ;ifld = 0
+  ifld = 0
   ;ifld = 3 ; tsfcn only
 
    ii = 0
-  do ii = 0,nflds-1
+  ;do ii = 0,nflds-1
    ifld = ii
 
    vname = iceflds(ifld)
@@ -224,8 +257,12 @@ end
 
    plot(ii) = subplot(ii," ",vname+" "+cdate,icevar,levs)
     dum(ii) = gsn_add_polyline(wks,plot(ii),(/lon1, lon2/) , (/lat1, lat2/) ,pres)
+   if(ires .eq. 3)then
+    oplot(ii) = gsn_csm_contour(wks,bathy,ores)
+    overlay(plot(ii),oplot(ii))
+   end if
    delete([/icevar,var/])
-  end do
+  ;end do
 
 ;************************************************
 ; panel the plots
@@ -239,8 +276,8 @@ end
  ;resP@gsnPanelYWhiteSpacePercent = 5
  ;resP@gsnPanelXWhiteSpacePercent = 5
 
-  ;gsn_panel(wks,plot,(/1,1/),resP)               ; now draw as one plot
-  gsn_panel(wks,plot,(/2,2/),resP)               ; now draw as one plot
+  gsn_panel(wks,plot,(/1,1/),resP)               ; now draw as one plot
+  ;gsn_panel(wks,plot,(/2,2/),resP)               ; now draw as one plot
 
 ;************************************************
 ;
