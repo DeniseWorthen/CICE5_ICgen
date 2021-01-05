@@ -35,18 +35,16 @@ saltmax = 3.2d0
  cp_ocn = 4218.d0
  Lfresh = 3.34d5
 
-; for testing, specify locations of SIS2 restart file and CICE5 grid file
-; this script will write the new CICE5 restart into the sis2src directory
-sis2src = "/scratch3/NCEPDEV/stmp1/Denise.Worthen/"
-cice5src = "/scratch4/NCEPDEV/nems/noscrub/emc.nemspara/RT/FV3-MOM6-CICE5/update-20190219/CICE/"
+sis2src = "/scratch2/NCEPDEV/climate/Denise.Worthen/Hae-Cheol/INPUT/008/"
+cice5src = "/scratch2/NCEPDEV/climate/Denise.Worthen/GRIDS/"
 
-; specify 1/4 degree tripole resolution; both SIS2 and CICE5 use the same
-; MOM6 1/4 degree tripole grid
-ni = 1440
-nj = 1080
+; specify 1/12 degree tripole resolution; both SIS2 and CICE5 use the same
+; MOM6 1/12 degree tripole grid
+ni = 4500
+nj = 3297
 
 ; specify the name of the CICE5 tmask file
-ftmaskname = "kmtu_cice_NEMS_mx025.nc"
+ftmaskname = "kmtu_cice_NEMS_mx008.nc"
 fmask = addfile(cice5src+ftmaskname,"r")
 print("CICE5 mask file used : "+cice5src+ftmaskname)
 ; retrieve the iceumask; kmt is stored as integer
@@ -58,12 +56,12 @@ iceumask = todouble(kmt)
 cdate="2011090100"
 
 ; specify the name of the SIS2 restart file
-finname="ice_model.res_"+cdate+".nc"
+finname="ice_model.res_GAEA.nc"
 fin  = addfile(sis2src+finname,"r")
 print("SIS2 file being converted : "+sis2src+finname)
 
 ; specify the name of the new CICE5 restart file
-foutname="cice5_model_0.25.res_"+cdate+".nc"
+foutname="cice5_model_0.008.res_"+cdate+".nc"
 ; get output file ready
 system("/bin/rm -f "+sis2src+foutname)
 fout = addfile(sis2src+foutname,"c")
@@ -93,7 +91,7 @@ print("CICE5 output file with ncat = "+ncat+" and nlayers = "+nilyr2)
     qice = new((/nilyr2,ncat,nj,ni/),double)
     sice = new((/nilyr2,ncat,nj,ni/),double)
 ; cice5 ice_restart_driver does not read this field
-     Tin = new((/nilyr2,ncat,nj,ni/),double)
+     ;Tin = new((/nilyr2,ncat,nj,ni/),double)
 
 ;************************************************
 ; Retrieve SIS2 variables
@@ -160,12 +158,12 @@ end do
 
 ; get Tin from inverting qice eqn from original script
 ; this variable is not required by CICE5 to restart
-do l = 0,nilyr2-1
+;do l = 0,nilyr2-1
 ;   Tin(l,:,:,:) = (qice(l,:,:,:) + rhoi*Lfresh)/rhoi*cp_ice
-  do k = 0,ncat-1
-   Tin(l,k,:,:) = where(aicen(k,:,:) .eq. 0.0d0, 0.0d0, (qice(l,k,:,:) + rhoi*Lfresh)/rhoi*cp_ice)
-  end do
-end do
+;  do k = 0,ncat-1
+;   Tin(l,k,:,:) = where(aicen(k,:,:) .eq. 0.0d0, 0.0d0, (qice(l,k,:,:) + rhoi*Lfresh)/rhoi*cp_ice)
+;  end do
+;end do
 
 ;do l = 0,nilyr2-1
 ;  Tin(l,:,:,:) = where(Tin(l,:,:,:) .gt. Tmltz(l), Tmltz(l), Tin(l,:,:,:))
@@ -196,7 +194,7 @@ do k = 0,ncat-1
  do l = 0,nilyr2-1
   qice(l,k,:,:) = where(ismissing(uvel), 0.0d0,  qice(l,k,:,:))
   sice(l,k,:,:) = where(ismissing(uvel), 0.0d0,  sice(l,k,:,:))
-   Tin(l,k,:,:) = where(ismissing(uvel), 0.0d0,   Tin(l,k,:,:))
+   ;Tin(l,k,:,:) = where(ismissing(uvel), 0.0d0,   Tin(l,k,:,:))
  end do
 end do
   
@@ -290,7 +288,7 @@ filevardef(fout,"sice006",typeof(sice),(/"ncat","nj","ni"/))
 filevardef(fout,"sice007",typeof(sice),(/"ncat","nj","ni"/))
 filevardef(fout,"qsno001",typeof(qsno),(/"ncat","nj","ni"/))
 filevardef(fout,"frz_onset",typeof(frz_onset),(/"nj","ni"/))
-filevardef(fout,"Tin",typeof(Tin),(/"nilyr","ncat","nj","ni"/))
+;filevardef(fout,"Tin",typeof(Tin),(/"nilyr","ncat","nj","ni"/))
 
 setfileoption(fout,"DefineMode",False)
 
@@ -371,8 +369,8 @@ print ("writing qice006")
 fout->qice006 = (/qice(5,:,:,:)/)
 print ("writing qice007")
 fout->qice007 = (/qice(6,:,:,:)/)
-print ("writing Tin")
-fout->Tin = (/Tin/)
+;print ("writing Tin")
+;fout->Tin = (/Tin/)
 print ("writing sice001")
 fout->sice001 = (/sice(0,:,:,:)/)
 print ("writing sice002")
