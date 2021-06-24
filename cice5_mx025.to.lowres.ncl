@@ -34,22 +34,23 @@ saltmax = 3.2d0
     icsrc = "/scratch2/NCEPDEV/climate/climpara/S2S/IC/CPC/"
   ; RT IC (20161003 only)
   ;  icsrc = "/scratch1/NCEPDEV/nems/emc.nemspara/RT/NEMSfv3gfs/input-data-20201201/CICE_IC/"
+
   ; specify output directory
    dirout = "/scratch2/NCEPDEV/climate/Denise.Worthen/NEWIC/"
   ; specify a date
   ;  cdate = "2016100300"
   ;  cdate = "2011070100"
-    cdate = "2011100100"
+    cdate = "2012091500"
 
   ; specify the output resolution identifiers and grid size
   ;output = (/"0.50", "mx050" /)
   ;outsiz = (/576,720/)
   ;output = (/"1.00", "mx100" /)
   ;outsiz = (/320,360/)
-  ;output = (/"0.72", "mx072" /)
-  ;outsiz = (/381,500/)
-  output = (/"3.00", "mx300" /)
-  outsiz = (/84,120/)
+  output = (/"0.72", "mx072" /)
+  outsiz = (/381,500/)
+  ;output = (/"3.00", "mx300" /)
+  ;outsiz = (/84,120/)
   
    ores = output(0)
    cres = output(1)

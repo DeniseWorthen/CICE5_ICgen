@@ -35,18 +35,16 @@ saltmax = 3.2d0
  cp_ocn = 4218.d0
  Lfresh = 3.34d5
 
-; for testing, specify locations of SIS2 restart file and CICE5 grid file
-; this script will write the new CICE5 restart into the sis2src directory
-sis2src = "/scratch3/NCEPDEV/stmp1/Denise.Worthen/"
-cice5src = "/scratch4/NCEPDEV/nems/noscrub/emc.nemspara/RT/FV3-MOM6-CICE5/update-20190219/CICE/"
+sis2src = "/scratch2/NCEPDEV/climate/Denise.Worthen/Hae-Cheol/INPUT/008/"
+cice5src = "/scratch2/NCEPDEV/climate/Denise.Worthen/GRIDS/"
 
-; specify 1/4 degree tripole resolution; both SIS2 and CICE5 use the same
-; MOM6 1/4 degree tripole grid
-ni = 1440
-nj = 1080
+; specify 1/12 degree tripole resolution; both SIS2 and CICE5 use the same
+; MOM6 1/12 degree tripole grid
+ni = 4500
+nj = 3297
 
 ; specify the name of the CICE5 tmask file
-ftmaskname = "kmtu_cice_NEMS_mx025.nc"
+ftmaskname = "kmtu_cice_NEMS_mx008.nc"
 fmask = addfile(cice5src+ftmaskname,"r")
 print("CICE5 mask file used : "+cice5src+ftmaskname)
 ; retrieve the iceumask; kmt is stored as integer
@@ -58,12 +56,13 @@ iceumask = todouble(kmt)
 cdate="2011090100"
 
 ; specify the name of the SIS2 restart file
-finname="ice_model.res_"+cdate+".nc"
+finname="ice_model.res_GAEA.nc"
 fin  = addfile(sis2src+finname,"r")
 print("SIS2 file being converted : "+sis2src+finname)
 
+setfileoption("nc","format","LargeFile")
 ; specify the name of the new CICE5 restart file
-foutname="cice5_model_0.25.res_"+cdate+".nc"
+foutname="cice5_model_0.008.res_"+cdate+".nc"
 ; get output file ready
 system("/bin/rm -f "+sis2src+foutname)
 fout = addfile(sis2src+foutname,"c")
@@ -85,6 +84,89 @@ print("SIS2 input file with ncat = "+ncat+" and nlayers = "+nilyr1)
 print("CICE5 output file with ncat = "+ncat+" and nlayers = "+nilyr2)
 
 ;************************************************
+; variables to be written to new restart file
+;************************************************
+
+  layers = ispan(1,nilyr2,1)
+  clayers = sprinti("%0.3i",layers)
+  ;print(clayers)
+    vars2d = (/      "uvel",       "vvel", "scale_factor",     "coszen" \
+              ,     "swvdr",      "swvdf",        "swidr",      "swidf" \
+              ,  "strocnxT",   "strocnyT" \
+              , "stressp_1",  "stressp_2",    "stressp_3",  "stressp_4" \
+              , "stressm_1",  "stressm_2",    "stressm_3",  "stressm_4" \
+              ,"stress12_1", "stress12_2",   "stress12_3", "stress12_4" \
+              ,"iceumask"/)
+
+  ncatvars = (/"aicen", "vicen", "vsnon", "Tsfcn"/)
+  nlyrvars = (/ "qice",  "sice"/)
+
+;----------------------------------------------------------------------
+; set up the output netcdf file
+;----------------------------------------------------------------------
+
+    system("/bin/rm -f " + sis2src+foutname)    ; remove if exists
+
+    ; explicitly declare file definition mode. Improve efficiency.
+    setfileoption(fout,"DefineMode",True)
+
+    ; create global attributes of the file
+    fAtt               = True            ; assign file attributes
+    fAtt@creation_date = systemfunc ("date")
+    fileattdef( fout, fAtt )           ; copy file attributes
+
+    ; predefine the coordinate variables and their dimensionality
+    dimNames = (/"ncat", "nj", "ni"/)
+    dimSizes = (/ ncat ,   nj,  ni/)
+    dimUnlim = (/False , False, False/)
+    filedimdef(fout,dimNames,dimSizes,dimUnlim)
+
+    ; predefine the the dimensionality of the variables to be written out
+    filevardef(fout, "ncat", typeof(ncat), "ncat")
+    filevardef(fout,   "nj",  typeof(nj),    "nj")
+    filevardef(fout,   "ni",  typeof(ni),    "ni")
+
+    do nv = 0,dimsizes(ncatvars)-1
+     varname = ncatvars(nv)
+       odims = (/"ncat", "nj", "ni"/)
+      print("creating variable "+varname+" in file")
+      filevardef(fout, varname, "double", odims)
+      delete(odims)
+    end do
+
+    ; predefine variables
+    do nv = 0,dimsizes(vars2d)-1
+     varname = vars2d(nv)
+       odims = (/"nj", "ni"/)
+      print("creating variable "+varname+" in file")
+      filevardef(fout, varname, "double", odims)
+      delete(odims)
+    end do
+
+    do nv = 0,dimsizes(nlyrvars)-1
+     do nl = 0,nilyr2-1
+       varname = nlyrvars(nv)+clayers(nl)
+         odims = (/"ncat", "nj", "ni"/)
+       print("creating variable "+varname+" in file")
+       filevardef(fout, varname, "double", odims)
+       delete(odims)
+     end do
+    end do
+
+    ; last two
+     varname = "qsno001"
+       odims = (/"ncat", "nj", "ni"/)
+     print("creating variable "+varname+" in file")
+     filevardef(fout, varname, "double", odims)
+     delete(odims)
+
+     varname = "frz_onset"
+       odims = (/"nj", "ni"/)
+     print("creating variable "+varname+" in file")
+     filevardef(fout, varname, "double", odims)
+     delete(odims)
+
+;************************************************
 ; Define new CICE5 variables
 ;************************************************
 
@@ -93,7 +175,7 @@ print("CICE5 output file with ncat = "+ncat+" and nlayers = "+nilyr2)
     qice = new((/nilyr2,ncat,nj,ni/),double)
     sice = new((/nilyr2,ncat,nj,ni/),double)
 ; cice5 ice_restart_driver does not read this field
-     Tin = new((/nilyr2,ncat,nj,ni/),double)
+     ;Tin = new((/nilyr2,ncat,nj,ni/),double)
 
 ;************************************************
 ; Retrieve SIS2 variables
@@ -160,12 +242,12 @@ end do
 
 ; get Tin from inverting qice eqn from original script
 ; this variable is not required by CICE5 to restart
-do l = 0,nilyr2-1
+;do l = 0,nilyr2-1
 ;   Tin(l,:,:,:) = (qice(l,:,:,:) + rhoi*Lfresh)/rhoi*cp_ice
-  do k = 0,ncat-1
-   Tin(l,k,:,:) = where(aicen(k,:,:) .eq. 0.0d0, 0.0d0, (qice(l,k,:,:) + rhoi*Lfresh)/rhoi*cp_ice)
-  end do
-end do
+;  do k = 0,ncat-1
+;   Tin(l,k,:,:) = where(aicen(k,:,:) .eq. 0.0d0, 0.0d0, (qice(l,k,:,:) + rhoi*Lfresh)/rhoi*cp_ice)
+;  end do
+;end do
 
 ;do l = 0,nilyr2-1
 ;  Tin(l,:,:,:) = where(Tin(l,:,:,:) .gt. Tmltz(l), Tmltz(l), Tin(l,:,:,:))
@@ -196,7 +278,7 @@ do k = 0,ncat-1
  do l = 0,nilyr2-1
   qice(l,k,:,:) = where(ismissing(uvel), 0.0d0,  qice(l,k,:,:))
   sice(l,k,:,:) = where(ismissing(uvel), 0.0d0,  sice(l,k,:,:))
-   Tin(l,k,:,:) = where(ismissing(uvel), 0.0d0,   Tin(l,k,:,:))
+   ;Tin(l,k,:,:) = where(ismissing(uvel), 0.0d0,   Tin(l,k,:,:))
  end do
 end do
   
@@ -230,74 +312,13 @@ scale_factor = uvel*0.
   stress12_4 = uvel*0.
 
 ;************************************************
-; dump to netcdf follows original script
+; write to netcdf
 ;************************************************
 
 ; set a flag to skip writing the file while debugging
 write_the_file = "yes"
 if(write_the_file .eq. "yes")then
 
-setfileoption("nc","format","LargeFile")
-
-setfileoption(fout,"DefineMode",True)
-
-dimNames = (/"nilyr","ncat","nj","ni"/)
-dimSizes = (/nilyr2,ncat,nj,ni/)
-dimUnlim = (/False,False,False,False/)
-filedimdef(fout,dimNames,dimSizes,dimUnlim)
-
-filevardef(fout,"aicen",typeof(aicen),(/"ncat","nj","ni"/))
-filevardef(fout,"vicen",typeof(vicen),(/"ncat","nj","ni"/))
-filevardef(fout,"vsnon",typeof(vsnon),(/"ncat","nj","ni"/))
-filevardef(fout,"Tsfcn",typeof(Tsfcn),(/"ncat","nj","ni"/))
-filevardef(fout,"uvel",typeof(uvel),(/"nj","ni"/))
-filevardef(fout,"vvel",typeof(vvel),(/"nj","ni"/))
-filevardef(fout,"scale_factor",typeof(scale_factor),(/"nj","ni"/))
-filevardef(fout,"coszen",typeof(coszen),(/"nj","ni"/))
-filevardef(fout,"swvdr",typeof(swvdr),(/"nj","ni"/))
-filevardef(fout,"swvdf",typeof(swvdf),(/"nj","ni"/))
-filevardef(fout,"swidr",typeof(swidr),(/"nj","ni"/))
-filevardef(fout,"swidf",typeof(swidf),(/"nj","ni"/))
-filevardef(fout,"strocnxT",typeof(strocnxT),(/"nj","ni"/))
-filevardef(fout,"strocnyT",typeof(strocnyT),(/"nj","ni"/))
-filevardef(fout,"stressp_1",typeof(stressp_1),(/"nj","ni"/))
-filevardef(fout,"stressp_2",typeof(stressp_2),(/"nj","ni"/))
-filevardef(fout,"stressp_3",typeof(stressp_3),(/"nj","ni"/))
-filevardef(fout,"stressp_4",typeof(stressp_4),(/"nj","ni"/))
-filevardef(fout,"stressm_1",typeof(stressm_1),(/"nj","ni"/))
-filevardef(fout,"stressm_2",typeof(stressm_2),(/"nj","ni"/))
-filevardef(fout,"stressm_3",typeof(stressm_3),(/"nj","ni"/))
-filevardef(fout,"stressm_4",typeof(stressm_4),(/"nj","ni"/))
-filevardef(fout,"stress12_1",typeof(stress12_1),(/"nj","ni"/))
-filevardef(fout,"stress12_2",typeof(stress12_2),(/"nj","ni"/))
-filevardef(fout,"stress12_3",typeof(stress12_3),(/"nj","ni"/))
-filevardef(fout,"stress12_4",typeof(stress12_4),(/"nj","ni"/))
-filevardef(fout,"iceumask",typeof(iceumask),(/"nj","ni"/))
-
-filevardef(fout,"qice001",typeof(qice),(/"ncat","nj","ni"/))
-filevardef(fout,"qice002",typeof(qice),(/"ncat","nj","ni"/))
-filevardef(fout,"qice003",typeof(qice),(/"ncat","nj","ni"/))
-filevardef(fout,"qice004",typeof(qice),(/"ncat","nj","ni"/))
-filevardef(fout,"qice005",typeof(qice),(/"ncat","nj","ni"/))
-filevardef(fout,"qice006",typeof(qice),(/"ncat","nj","ni"/))
-filevardef(fout,"qice007",typeof(qice),(/"ncat","nj","ni"/))
-filevardef(fout,"sice001",typeof(sice),(/"ncat","nj","ni"/))
-filevardef(fout,"sice002",typeof(sice),(/"ncat","nj","ni"/))
-filevardef(fout,"sice003",typeof(sice),(/"ncat","nj","ni"/))
-filevardef(fout,"sice004",typeof(sice),(/"ncat","nj","ni"/))
-filevardef(fout,"sice005",typeof(sice),(/"ncat","nj","ni"/))
-filevardef(fout,"sice006",typeof(sice),(/"ncat","nj","ni"/))
-filevardef(fout,"sice007",typeof(sice),(/"ncat","nj","ni"/))
-filevardef(fout,"qsno001",typeof(qsno),(/"ncat","nj","ni"/))
-filevardef(fout,"frz_onset",typeof(frz_onset),(/"nj","ni"/))
-filevardef(fout,"Tin",typeof(Tin),(/"nilyr","ncat","nj","ni"/))
-
-setfileoption(fout,"DefineMode",False)
-
-; setfileoption(fout,"DefineMode",True)
-
-; strtWrt = systemfunc("date")
-; print (strtWrt)
 print ("writing aicen")
 fout->aicen = (/aicen/)
 print ("writing vicen")
@@ -371,8 +392,8 @@ print ("writing qice006")
 fout->qice006 = (/qice(5,:,:,:)/)
 print ("writing qice007")
 fout->qice007 = (/qice(6,:,:,:)/)
-print ("writing Tin")
-fout->Tin = (/Tin/)
+;print ("writing Tin")
+;fout->Tin = (/Tin/)
 print ("writing sice001")
 fout->sice001 = (/sice(0,:,:,:)/)
 print ("writing sice002")

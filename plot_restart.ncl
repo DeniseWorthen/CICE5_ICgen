@@ -70,10 +70,10 @@ begin
 
   if(restarttype .eq. "NEW")then
    ; pick a date
-     ;cdate = "2011070100"
-     cdate = "2016100300"
+     cdate = "2012091500"
+     ;cdate = "2012010100"
      icsrc = "/scratch2/NCEPDEV/climate/Denise.Worthen/NEWIC/"
-   icefile = "cice_model_"+csrcs(ires)+".res_"+cdate+".nc"
+   icefile = "cice_model_"+csrcs(ires)+".cpc.res_"+cdate+".nc"
   end if
 
   print("using grid file "+grdsrc+grdfile)
@@ -198,7 +198,7 @@ begin
   ores@cnLevelSelectionMode = "ExplicitLevels"     ; set the contour levels with the following 3 resources
   ;ores@cnLineColor = "green"
   ores@cnMonoLineColor = False
-  ores@cnLineColors = (/"green","red"/)
+  ores@cnLineColors = (/"green","green4"/)
   ores@cnLevels = (/20.0, 100.0/)
 
 ;************************************************
