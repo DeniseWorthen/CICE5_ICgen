@@ -34,30 +34,31 @@ begin
   ;  fsrcs => tripole grid file
   ; rtsrcs => subdirs for the rt ICs
   ;  csrcs => cice restart file
-    fsrcs = (/ "mx100",  "mx050",  "mx025", "mx072", "mx300"/)
-   rtsrcs = (/   "100",    "050",    "025",   "072",   "300"/)
-    csrcs = (/  "1.00",   "0.50",   "0.25",  "0.72",  "3.00"/)
+    fsrcs = (/ "mx100",  "mx050",  "mx025", "mx072", "mx400"/)
+   rtsrcs = (/   "100",    "050",    "025",   "072",   "400"/)
+    csrcs = (/  "1.00",   "0.50",   "0.25",  "0.72",  "4.00"/)
   ; seam longitude for each res
-     lons = (/    60.0,     60.0,     60.0,   73.75,   75.00/)
+     lons = (/    60.0,     60.0,     60.0,   73.75,   80.00/)
 
   ;ires = 0 ; 1deg
   ;ires = 1 ; 1/2deg
   ;ires = 2 ; 1/4deg
-  ires = 3 ; 072deg
-  ;ires = 4 ; 3deg
+  ;ires = 3 ; 072deg
+  ires = 4 ; 4deg
 
 ;************************************************
 ; specify the timestamp of the file, location
 ; and the matching grid file
 ;************************************************
 
-   grdsrc = "/scratch2/NCEPDEV/climate/Denise.Worthen/GRIDS/"
+   ;grdsrc = "/scratch2/NCEPDEV/climate/Denise.Worthen/GRIDS/"
+   grdsrc = "/scratch2/NCEPDEV/climate/Denise.Worthen/grids-20210727/"
   grdfile = "tripole."+fsrcs(ires)+".nc"
 
   if(restarttype .eq. "RT")then
     ;only 1 date
      cdate = "2016100300"
-     icsrc = "/scratch1/NCEPDEV/nems/emc.nemspara/RT/NEMSfv3gfs/input-data-20201201/CICE_IC/"+rtsrcs(ires)+"/"
+     icsrc = "/scratch1/NCEPDEV/nems/emc.nemspara/RT/NEMSfv3gfs/input-data-20210212/CICE_IC/"+rtsrcs(ires)+"/"
    icefile = "cice_model_"+csrcs(ires)+".res_"+cdate+".nc"
   end if
 
@@ -70,9 +71,12 @@ begin
 
   if(restarttype .eq. "NEW")then
    ; pick a date
-     cdate = "2012091500"
+     ;cdate = "2012091500"
      ;cdate = "2012010100"
-     icsrc = "/scratch2/NCEPDEV/climate/Denise.Worthen/NEWIC/"
+     cdate = "20210322"
+     ;cdate = "00000000"
+     icsrc = "/scratch1/NCEPDEV/stmp4/Denise.Worthen/CPLD_V16_ICS/"
+     ;icsrc = "/scratch2/NCEPDEV/stmp1/Denise.Worthen/ForXingren/"
    icefile = "cice_model_"+csrcs(ires)+".cpc.res_"+cdate+".nc"
   end if
 
@@ -102,7 +106,8 @@ begin
   plotlevs(0,:) = (/  0.0,  1.00,  0.10/)
   plotlevs(1,:) = (/  0.0,  3.00,  0.10/)
   plotlevs(2,:) = (/  0.0,  0.50,  0.05/)
-  plotlevs(3,:) = (/-20.0,  0.00,  1.00/)
+  ;plotlevs(3,:) = (/-20.0,  0.00,  1.00/)
+  plotlevs(3,:) = (/-2.0,  0.00,  0.10/)
 
   ; retrieve lat,lon,mask
   lon2d = gf->$lonname$
@@ -158,7 +163,7 @@ begin
   res@gsnFrame             = False       ; do not automatically advance 'frame'
 
   res@mpFillOn    = False
-  res@mpOutlineOn = True
+  res@mpOutlineOn = False
   ;res@cnFillMode           = "MeshFill"
   res@cnFillMode           = "RasterFill"
   res@cnFillDrawOrder      = "PreDraw"             ; draw contours first
@@ -235,7 +240,7 @@ end
   ;ifld = 3 ; tsfcn only
 
    ii = 0
-  ;do ii = 0,nflds-1
+  do ii = 0,nflds-1
    ifld = ii
 
    vname = iceflds(ifld)
@@ -262,7 +267,7 @@ end
     overlay(plot(ii),oplot(ii))
    end if
    delete([/icevar,var/])
-  ;end do
+  end do
 
 ;************************************************
 ; panel the plots
@@ -276,8 +281,8 @@ end
  ;resP@gsnPanelYWhiteSpacePercent = 5
  ;resP@gsnPanelXWhiteSpacePercent = 5
 
-  gsn_panel(wks,plot,(/1,1/),resP)               ; now draw as one plot
-  ;gsn_panel(wks,plot,(/2,2/),resP)               ; now draw as one plot
+  ;gsn_panel(wks,plot,(/1,1/),resP)               ; now draw as one plot
+  gsn_panel(wks,plot,(/2,2/),resP)               ; now draw as one plot
 
 ;************************************************
 ;

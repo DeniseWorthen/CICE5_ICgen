@@ -1,3 +1,4 @@
+
 load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_code.ncl"
 load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
 load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/contributed.ncl"
@@ -5,9 +6,22 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/esmf/ESMF_regridding.ncl"
 
 ;begin
 
+puny = 1.0d-11
 print("Entered convert_cice5_025.ncl")
 
-ftmask = addfile("kmtu_cice_NEMS_mx025.nc","r")
+; ESMF weights for regridding from CFS/CFSR MOM5 0.5 deg to 0.25deg
+wtsdir="/scratch2/NCEPDEV/climate/Jiande.Wang/working/CPC-ice-IC/"
+wtsfile=wtsdir+"MOM0.5_to_MOM0.25_map.nc"
+
+; Source directory containing cfsr restarts
+;srcdir="/scratch1/NCEPDEV/stmp4/Denise.Worthen/CPLD_V16_ICS/"
+srcdir="/scratch2/NCEPDEV/climate/Xingren.Wu/scrub/CFSv2/ICs/"
+cdate=(/"00000000"/)
+
+; Directory to write files
+outdir="/scratch2/NCEPDEV/stmp1/Denise.Worthen/ForXingren/"
+
+ftmask = addfile(wtsdir+"kmtu_cice_NEMS_mx025.nc","r")
 kmt = ftmask->kmt
 kmt5 = new((/5,1080,1440/),"double")
 do k = 0,4
@@ -16,10 +30,11 @@ end do
 
 ; fin  = addfile("ice_model.res.nc","r")
 
-print(cdate)
-finname="ice_model.res_"+cdate+".nc"
+;print(cdate)
+;finname="ice_model.res_"+cdate+".nc"
+finname="ice_model.res.nc"
 print(finname)
-fin  = addfile(finname,"r")
+fin  = addfile(srcdir+finname,"r")
 
 
 Opt = True
@@ -50,24 +65,24 @@ t1 = new((/ncat,nj2,ni2/),"double")
 t2 = new((/ncat,nj2,ni2/),"double")
 
 do n=0,ncat-1
-   part_size(n,:,:) = ESMF_regrid_with_weights(part_size1(0,n+1,:,:),"MOM0.5_to_MOM0.25_map.nc",Opt)
-   h_ice(n,:,:) = ESMF_regrid_with_weights(h_ice1(0,n,:,:),"MOM0.5_to_MOM0.25_map.nc",Opt)
-   h_sno(n,:,:) = ESMF_regrid_with_weights(h_sno1(0,n,:,:),"MOM0.5_to_MOM0.25_map.nc",Opt)
-   t_surf(n,:,:) = ESMF_regrid_with_weights(t_surf1(0,n+1,:,:),"MOM0.5_to_MOM0.25_map.nc",Opt)
-   t1(n,:,:) = ESMF_regrid_with_weights(t_ice1(0,n,:,:),"MOM0.5_to_MOM0.25_map.nc",Opt)
-   t2(n,:,:) = ESMF_regrid_with_weights(t_ice2(0,n,:,:),"MOM0.5_to_MOM0.25_map.nc",Opt)
+   part_size(n,:,:) = ESMF_regrid_with_weights(part_size1(0,n+1,:,:),wtsfile,Opt)
+   h_ice(n,:,:) = ESMF_regrid_with_weights(h_ice1(0,n,:,:),wtsfile,Opt)
+   h_sno(n,:,:) = ESMF_regrid_with_weights(h_sno1(0,n,:,:),wtsfile,Opt)
+   t_surf(n,:,:) = ESMF_regrid_with_weights(t_surf1(0,n+1,:,:),wtsfile,Opt)
+   t1(n,:,:) = ESMF_regrid_with_weights(t_ice1(0,n,:,:),wtsfile,Opt)
+   t2(n,:,:) = ESMF_regrid_with_weights(t_ice2(0,n,:,:),wtsfile,Opt)
 end do
 
 tmp = fin->u_ice
-uvel = ESMF_regrid_with_weights(tmp,"MOM0.5_to_MOM0.25_map.nc",Opt)
+uvel = ESMF_regrid_with_weights(tmp,wtsfile,Opt)
 tmp = fin->v_ice
-vvel = ESMF_regrid_with_weights(tmp,"MOM0.5_to_MOM0.25_map.nc",Opt)
+vvel = ESMF_regrid_with_weights(tmp,wtsfile,Opt)
 tmp = fin->sig11
-sig11 = ESMF_regrid_with_weights(tmp,"MOM0.5_to_MOM0.25_map.nc",Opt)
+sig11 = ESMF_regrid_with_weights(tmp,wtsfile,Opt)
 tmp = fin->sig22
-sig22 = ESMF_regrid_with_weights(tmp,"MOM0.5_to_MOM0.25_map.nc",Opt)
+sig22 = ESMF_regrid_with_weights(tmp,wtsfile,Opt)
 tmp = fin->sig12
-sig12 = ESMF_regrid_with_weights(tmp,"MOM0.5_to_MOM0.25_map.nc",Opt)
+sig12 = ESMF_regrid_with_weights(tmp,wtsfile,Opt)
 
 ; These need to be created
 
@@ -250,8 +265,8 @@ setfileoption("nc","format","LargeFile")
 
 ; fout = addfile("cice5_model_0.25.res.nc","c")
 
-foutname="cice5_model_0.25.res_"+cdate+".nc"
-fout = addfile(foutname,"c")
+foutname="cice_model_0.25.res_"+cdate+".nc"
+fout = addfile(outdir+foutname,"c")
 print(foutname)
 
 setfileoption(fout,"DefineMode",True)
@@ -309,7 +324,7 @@ filevardef(fout,"sice006",typeof(sice),(/"ncat","nj","ni"/))
 filevardef(fout,"sice007",typeof(sice),(/"ncat","nj","ni"/))
 filevardef(fout,"qsno001",typeof(qsno),(/"ncat","nj","ni"/))
 filevardef(fout,"frz_onset",typeof(frz_onset),(/"nj","ni"/))
-filevardef(fout,"Tin",typeof(Tin),(/"nilyr","ncat","nj","ni"/))
+;filevardef(fout,"Tin",typeof(Tin),(/"nilyr","ncat","nj","ni"/))
 
 setfileoption(fout,"DefineMode",False)
 
@@ -390,8 +405,8 @@ print ("writing qice006")
 fout->qice006 = (/qice(5,:,:,:)/)
 print ("writing qice007")
 fout->qice007 = (/qice(6,:,:,:)/)
-print ("writing Tin")
-fout->Tin = (/Tin/)
+;print ("writing Tin")
+;fout->Tin = (/Tin/)
 print ("writing sice001")
 fout->sice001 = (/sice(0,:,:,:)/)
 print ("writing sice002")

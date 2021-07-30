@@ -28,29 +28,35 @@ saltmax = 3.2d0
 ;----------------------------------------------------------------------
 
   ; specify grid and weights directory
-   grdsrc = "/scratch2/NCEPDEV/climate/Denise.Worthen/GRIDS/"
+   grdsrc = "/scratch2/NCEPDEV/climate/Denise.Worthen/grids-20210727/"
   ; specify IC source directory
   ; CPC reanalysis
-    icsrc = "/scratch2/NCEPDEV/climate/climpara/S2S/IC/CPC/"
+  ;  icsrc = "/scratch2/NCEPDEV/climate/climpara/S2S/IC/CPC/"
+    icsrc = "/scratch1/NCEPDEV/stmp4/Denise.Worthen/CPLD_V16_ICS/"
+  ;  icsrc = "/scratch2/NCEPDEV/stmp1/Denise.Worthen/ForXingren/"
   ; RT IC (20161003 only)
   ;  icsrc = "/scratch1/NCEPDEV/nems/emc.nemspara/RT/NEMSfv3gfs/input-data-20201201/CICE_IC/"
 
   ; specify output directory
-   dirout = "/scratch2/NCEPDEV/climate/Denise.Worthen/NEWIC/"
+  ; dirout = "/scratch2/NCEPDEV/climate/Denise.Worthen/NEWIC/"
+   dirout = "/scratch1/NCEPDEV/stmp4/Denise.Worthen/CPLD_V16_ICS/"
+  ; dirout = "/scratch2/NCEPDEV/stmp1/Denise.Worthen/ForXingren/"
   ; specify a date
   ;  cdate = "2016100300"
   ;  cdate = "2011070100"
-    cdate = "2012091500"
+  ;  cdate = "2012091500"
+    cdate = "20210322"
+  ;  cdate = "00000000"
 
   ; specify the output resolution identifiers and grid size
   ;output = (/"0.50", "mx050" /)
   ;outsiz = (/576,720/)
   ;output = (/"1.00", "mx100" /)
   ;outsiz = (/320,360/)
-  output = (/"0.72", "mx072" /)
-  outsiz = (/381,500/)
-  ;output = (/"3.00", "mx300" /)
-  ;outsiz = (/84,120/)
+  ;output = (/"0.72", "mx072" /)
+  ;outsiz = (/381,500/)
+  output = (/"4.00", "mx400" /)
+  outsiz = (/35,72/)
   
    ores = output(0)
    cres = output(1)
@@ -69,15 +75,17 @@ saltmax = 3.2d0
 ;
 ;----------------------------------------------------------------------
 
-    ;fout = "cice_model_"+ores+".res_"+cdate+".nc"
+   ; fout = "cice_model_"+ores+".res_"+cdate+".nc"
     fout = "cice_model_"+ores+".cpc.res_"+cdate+".nc"
  
    ; if using CPC reanalysis
-   ic025 = "cice5_model_0.25.res_"+cdate+".nc"
-    f025 = addfile(icsrc+cdate+"/ice/025/"+ic025,"r")
+   ic025 = "cice_model_0.25.cpc.res_"+cdate+".nc"
+   ; f025 = addfile(icsrc+cdate+"/ice/025/"+ic025,"r")
+    f025 = addfile(icsrc+ic025,"r")
    ; if RT IC
    ;f025 = addfile(icsrc+"025/"+ic025,"r")
    ;ic025 = "cice_model_0.25.res_"+cdate+".nc"
+   ; f025 = addfile(icsrc+ic025,"r")
 
    vnames = getfilevarnames(f025)
     nvars = dimsizes(vnames)

@@ -299,8 +299,8 @@ end if
 ;********************************************************************
 
    ; File to write
-   ;foutname=srcdir+"cice5_model_0.25.res_"+dates(ii)+".nc"
-   foutname=srcdir+"test.nc"
+   foutname=srcdir+"cice_model_0.25.cpc.res_"+dates(ii)+".nc"
+   ;foutname=srcdir+"test.nc"
    print("setting up output file "+foutname)
 
    file_atts = getvaratts(fin)
