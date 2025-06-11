@@ -11,14 +11,14 @@
 begin
 
 ; mx100 decomps
-nx = 360
-ny = 320
+;nx = 360
+;ny = 320
 ; mx050 decomps
 ;nx = 720
 ;ny = 576
 ; mx025 decomps
-;nx = 1440
-;ny = 1080
+nx = 1440
+ny = 1080
 
 primesx = (/1,2,2,2,2,3,3,5/)
 primesy = (/1,2,5,41/)

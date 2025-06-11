@@ -14,13 +14,14 @@
   hemi="NH"
   ;hemi="SH"
 
-  minlat = 66.0
-  ;minlat = 76.0
-  ;minlat = 88.0
+  ;minlat = 66.0
+  minlat = 76.0
+  ;minlat = 89.8
   ;minlat = 80.0
 
    vmag = 0.50
-   vthn = 0.008
+   vthn = 0.01
+   ;vthn = 0.0
 
    rad2deg=180.d0/acos(-1.0d0)
 begin
@@ -33,45 +34,60 @@ begin
   RT3 = "/scratch3/NCEPDEV/stmp3/Denise.Worthen/"
   RT4 = "/scratch4/NCEPDEV/stmp4/Denise.Worthen/"
 
-  cdate = "2011040100"
+  ;cdate = "2013040100"
   ;cdate = "2011090100"
+  cdate = "2011-10-01-43200"
 
-  cice5 = "cice5_model_0.25.res_"+cdate+".nc"
+  ;icdir = "/scratch2/NAGAPE/epic/UFS-WM_RT/NEMSfv3gfs/BM_IC-20220207/2013040100/cpc/"
+  ;cice5 = "cice5_model_0.25.res_"+cdate+".nc"
 
+  icdir="/scratch1/NCEPDEV/nems/Denise.Worthen/WORK/iceic/"
+  cice5="testdstBu_ij.nc"
+  ;icdir = "/scratch2/NAGAPE/epic/UFS-WM_RT/NEMSfv3gfs/develop-20240305/datm_cdeps_mx025_gefs_intel/RESTART/"
+  ;cice5 = "iced."+cdate+".nc"
   ; this copy contains the center lats and lons in degrees, which
   ; is more convenient for plotting
-  dirsrc = "/scratch4/NCEPDEV/ocean/save/Denise.Worthen/NEMS_INPUT0.1/cice_data/mx024/"
+  dirsrc = "/scratch1/NCEPDEV/climate/Denise.Worthen/grids-20240218/"
   ; load the grid file
-      gr = addfile(dirsrc+"grid_cice_NEMS_mx025.nc","r")
+  ;gr = addfile(dirsrc+"grid_cice_NEMS_mx025.nc","r")
+  gr = addfile(dirsrc+"grid_cice_NEMS_mx100.nc","r")
 
-  icelonname = "lonT"
-  icelatname = "latT"
-   anglename = "anglet"
+  icelonname = "ulon"
+  icelatname = "ulat"
+   anglename = "angle"
 
-  cice5file = addfile(RT1+cice5,"r")
-
+  ;print(icdir+cice5)
+  ifile = addfile(icdir+cice5,"r")
   wkstitle="restarts"+cdate
 
   rotang = gr->$anglename$
-      ut = cice5file->uvel
-      vt = cice5file->vvel
-  ut@_FillValue =  default_fillvalue("double")
-  vt@_FillValue =  default_fillvalue("double")
+      ut = ifile->vecdst(0,:,:)
+      vt = ifile->vecdst(1,:,:)
+  ;ut = ifile->uvel
+  ;vt = ifile->vvel
+      ;printVarSummary(ut)
+      ;print(ut(1079,:)+"   "+vt(1079,:))
 
-  ut@lon2d=gr->$icelonname$
-  ut@lat2d=gr->$icelatname$
-  vt@lon2d=gr->$icelonname$
-  vt@lat2d=gr->$icelatname$
- 
-  ; copy metadata
+  ;ut@_FillValue =  default_fillvalue("double")
+  ;vt@_FillValue =  default_fillvalue("double")
+
+  ut@lon2d=gr->$icelonname$*rad2deg
+  ut@lat2d=gr->$icelatname$*rad2deg
+  vt@lon2d=gr->$icelonname$*rad2deg
+  vt@lat2d=gr->$icelatname$*rad2deg
+
+  ; copy metadata, rotang here is same sign as internal CICE (-1*sin,+1*cos mom)
   urot = ut
   vrot = vt
-  urot = cos(rotang)*ut - sin(rotang)*vt
-  vrot = sin(rotang)*ut + cos(rotang)*vt
+  urot = 0.0
+  vrot = 0.0
+  urot =  cos(rotang)*ut - sin(rotang)*vt
+  vrot =  sin(rotang)*ut + cos(rotang)*vt
+
   ;printVarSummary(urot)
 
-  urot = where(urot@lat2d .ge. minlat, urot, ut@_FillValue)
-  vrot = where(vrot@lat2d .ge. minlat, vrot, vt@_FillValue)
+  urot = where(urot@lat2d .ge. minlat, urot, 0.0)
+  vrot = where(vrot@lat2d .ge. minlat, vrot, 0.0)
   print("urot min = "+min(urot)+" urot max = "+max(urot))
   print("vrot min = "+min(vrot)+" vrot max = "+max(vrot))
 
@@ -103,7 +119,7 @@ begin
   ;res@vcMonoLineArrowColor  = True             ; multiple colors desired
   res@vcMinDistanceF        = vthn              ; thins arrows near pole
   ;res@vcLineArrowThicknessF = 1.5
-  ;res@vcGlyphStyle          = "CurlyVector"
+  res@vcGlyphStyle          = "CurlyVector"
   ;res@vcPositionMode = "ArrowTail"
 
   res@gsnPolar   =  hemi                         ; specify the hemisphere
@@ -133,7 +149,7 @@ begin
 
   ;plot = gsn_csm_vector_scalar_map_polar(wks,urot,vrot,avar,res)    ; create the plot
   plot = gsn_csm_vector_map_polar(wks,urot,vrot,res)    ; create the plot
-  ;plot = gsn_csm_contour_map_polar(wks,avar,res)    ; create the plot
+  ;plot = gsn_csm_contour_map_polar(wks,ut,res)    ; create the plot
   ;dum= gsn_add_polyline(wks,plot,(/lon1, lon2/) , (/lat1, lat2/) ,pres)
   ;draw(plot)
   ;frame(wks)
